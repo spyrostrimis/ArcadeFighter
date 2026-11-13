@@ -12,6 +12,8 @@ var hi_score := 100000
 
 # Command-line test options (pass after "--", e.g. -- --demo --shot=out.png --frames=300)
 var opt := {}
+var auto_started := false   # the --host/--join test hook already ran
+var auto_matches := 0       # --autoplay: matches finished so far
 
 
 func _ready() -> void:
@@ -23,6 +25,17 @@ func _ready() -> void:
 			opt[s.substr(0, eq)] = s.substr(eq + 1)
 		else:
 			opt[s] = "1"
+
+
+## Test hook: append one JSON line to the --result file.
+func auto_report(d: Dictionary) -> void:
+	if not opt.has("result"):
+		return
+	var path: String = opt["result"]
+	var f := FileAccess.open(path, FileAccess.READ_WRITE if FileAccess.file_exists(path) else FileAccess.WRITE)
+	if f != null:
+		f.seek_end()
+		f.store_line(JSON.stringify(d))
 
 
 func _key(action: String, keycode: Key) -> void:

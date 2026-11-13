@@ -5,7 +5,7 @@ extends Node2D
 signal finished(action: String)
 
 const ITEMS := ["VS CPU", "2 PLAYERS", "ONLINE", "CPU LEVEL", "QUIT"]
-const ENABLED := [true, false, false, true, true]
+const ENABLED := [true, false, true, true, true]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
 
 var cursor := 0
@@ -47,6 +47,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			"VS CPU":
 				Sfx.play("confirm")
 				finished.emit("select")
+			"ONLINE":
+				Sfx.play("confirm")
+				finished.emit("online")
 			"CPU LEVEL":
 				Game.cpu_level = (Game.cpu_level + 1) % 3
 				Sfx.play("select")

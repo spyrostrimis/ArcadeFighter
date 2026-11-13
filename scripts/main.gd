@@ -4,6 +4,10 @@ extends Node
 ##   -- --screen=title|select  open a screen directly
 ##   -- --p1=ced --p2=kros     characters for --demo
 ##   -- --shot=prefix --shot_at=60,300   save screenshots at those frames, then quit
+## Online test hooks (see docs/online.md):
+##   -- --host [--room=CODE] [--codefile=PATH]   host a room straight away
+##   -- --join=CODE | --join=@PATH               join (code read from a file)
+##   -- --autopick=ced   --autoplay   --matches=2   --result=PATH   --quit_after=SECONDS
 
 var current: Node
 var frames := 0
@@ -19,7 +23,10 @@ func _ready() -> void:
 		Game.p1_char = o["p1"]
 	if o.has("p2"):
 		Game.p2_char = o["p2"]
-	if o.has("demo"):
+	Net.lost.connect(_on_net_lost)
+	if o.has("host") or o.has("join"):
+		_goto(OnlineScreen.new())
+	elif o.has("demo"):
 		_fight(true)
 	elif o.get("screen", "") == "select":
 		_goto(SelectScreen.new())
@@ -54,8 +61,35 @@ func _fight(demo: bool) -> void:
 	_goto(fs)
 
 
+func _online(error := "") -> void:
+	var s := OnlineScreen.new()
+	s.error_msg = error
+	_goto(s)
+
+
+func _on_net_lost(reason: String) -> void:
+	if Game.opt.has("autoplay"):
+		if not Game.opt.has("auto_done"):   # the other side finishing first is fine
+			Game.auto_report({"lost": reason})
+		get_tree().quit(0 if Game.opt.has("auto_done") else 1)
+		return
+	_online(reason)
+
+
 func _on_finished(action: String) -> void:
 	match action:
+		"online":
+			_online()
+		"online_error":
+			_online(Net.last_error)
+		"online_select":
+			var ss := SelectScreen.new()
+			ss.online = true
+			_goto(ss)
+		"online_fight":
+			var fs := FightScreen.new()
+			fs.setup_online(Game.p1_char, Game.p2_char)
+			_goto(fs)
 		"title":
 			_title()
 		"select":
@@ -79,6 +113,9 @@ func _physics_process(_delta: float) -> void:
 				Input.action_press(a[0])
 			else:
 				Input.action_release(a[0])
+	if Game.opt.has("quit_after") and frames > int(Game.opt["quit_after"]) * 60:
+		Game.auto_report({"error": "quit_after timeout"})
+		get_tree().quit(2)
 	if shot_frames.is_empty():
 		return
 	if frames in shot_frames:
@@ -88,5 +125,5 @@ func _physics_process(_delta: float) -> void:
 		img.save_png("%s_%d.png" % [prefix, frames])
 		img.resize(img.get_width() * 3, img.get_height() * 3, Image.INTERPOLATE_NEAREST)
 		img.save_png("%s_%d_x3.png" % [prefix, frames])
-	if frames > shot_frames.max():
+	if frames > shot_frames.max() and not Game.opt.has("autoplay"):
 		get_tree().quit()

@@ -18,6 +18,7 @@ var sim: MatchSim
 var pals: Array = []
 var cpu_side := [false, true]
 var demo := false
+var online_local := -1   # online: which slot is this player (for YOU WIN / YOU LOSE)
 var _red := [1000.0, 1000.0]
 var _red_delay := [0, 0]
 var _combo := [{"n": 0, "t": 0}, {"n": 0, "t": 0}]
@@ -219,11 +220,13 @@ func _banner() -> void:
 			var txt2 := ""
 			if mw == 2:
 				txt2 = "DRAW GAME"
+			elif online_local >= 0:
+				txt2 = "YOU WIN!" if mw == online_local else "YOU LOSE"
 			elif demo or (cpu_side[0] == cpu_side[1]):
 				txt2 = String(sim.f[mw].data["name"]) + " WINS"
 			else:
 				var human := 0 if not cpu_side[0] else 1
 				txt2 = "YOU WIN!" if mw == human else "YOU LOSE"
 			PixelFont.draw_centered(self, txt2, cx, y, 4, FIGHT_GRAD if txt2 != "YOU LOSE" else KO_GRAD, DARK, 1, true, 2)
-			if pf > 90 and (_blink / 30) % 2 == 0:
+			if pf > 90 and (_blink / 30) % 2 == 0 and online_local < 0:
 				PixelFont.draw_centered(self, "PRESS START", cx, y + 40, 1, [Color.WHITE, Color("c0c8ff")], DARK, 0, true)

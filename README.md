@@ -6,6 +6,9 @@ Retro 16-bit pixel-art fighting game in Godot 4.7: **CED vs KROS** in the bedroo
 
 - Double-click `play.bat`, or open `project.godot` in Godot and press F5.
 - Menu: **VS CPU** → pick your fighter → pick the CPU opponent (mirror matches are allowed).
+- **ONLINE** → HOST ROOM shows a 6-letter code; your opponent picks JOIN ROOM and types it.
+  No IP or port forwarding needed; rollback netcode. Details: [docs/online.md](docs/online.md).
+  Builds must ship `libwebrtc_native.windows.template_release.x86_64.dll` next to the .exe.
 
 | Action | Keys | Gamepad |
 |---|---|---|
@@ -31,16 +34,22 @@ scripts/sim/      deterministic game logic (integer math), no rendering
   inp.gd          input bitmask (same format for keyboard, CPU and future netplay)
 scripts/ai/cpu.gd CPU opponent (Easy/Normal/Hard on the title screen)
 scripts/render/   placeholder art: puppet.gd/poses.gd draw the characters, hud.gd, effects.gd
-scripts/screens/  title, character select, fight
+scripts/screens/  title, character select, fight, online menu
+scripts/net/      online: MQTT signalling, WebRTC room (net_room.gd), rollback.gd, Net autoload
+addons/webrtc_native/  official godotengine/webrtc-native GDExtension (Windows x86_64)
 assets/stages/bedroom.png   stage art (512x216; feet stand on y=200)
 tools/gen_stage.py          regenerates the placeholder stage
 tests/simtest.gd            headless CPU-vs-CPU + rollback determinism test
+tests/nettest.gd            headless rollback sync test (latency, jitter, loss, disconnect, desync)
+tests/roomprobe.gd          real signalling + WebRTC connection in one process
+tests/online_pair.sh        two game windows host/join a room and play online matches
 ```
 
 ## Tests
 
 ```bash
 C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/simtest.gd
+C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/nettest.gd
 ```
 
 Debug launch options (after `--`): `--demo` (CPU vs CPU), `--p1=kros --p2=ced`,
@@ -50,4 +59,4 @@ Debug launch options (after `--`): `--demo` (CPU vs CPU), `--p1=kros --p2=ced`,
 
 - Real sprite art: swap the procedural puppet for sprite sheets. Frame data and hitboxes stay in `char_data.gd`.
 - Local 2 players: P2 input actions already exist. It needs P2 keyboard keys and a select screen for two players.
-- Online room codes: the sim is deterministic and can be saved and restored (tested), which rollback netcode needs.
+- Online: add a TURN relay for players behind symmetric NAT (see docs/online.md, Limits).

@@ -2,3 +2,6 @@
 tools/_stage_preview_x3.png
 builds/
 build/
+
+# Godot temp copies of locked DLLs
+*.TMP

@@ -1,0 +1,13 @@
+; Official godotengine/webrtc-native 1.2.2-stable (Windows x86_64 only).
+; Full release: https://github.com/godotengine/webrtc-native/releases/tag/1.2.2-stable
+[configuration]
+
+entry_symbol = "webrtc_extension_init"
+compatibility_minimum = 4.3
+
+exclude_tags = ["web", "no-webrtc"]
+
+[libraries]
+
+windows.debug.x86_64 = "lib/libwebrtc_native.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "lib/libwebrtc_native.windows.template_release.x86_64.dll"
