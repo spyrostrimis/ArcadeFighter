@@ -24,6 +24,9 @@ Rules: best of 3 rounds, 99-second timer. Light attacks chain into each other.
 Crouching heavy punch is an anti-air uppercut, and crouching heavy kick is a sweep.
 Jump attacks must be blocked standing, and low kicks must be blocked crouching.
 
+**CED special: Flying Knee** = down, down-forward, forward + punch. He runs in, knees the
+opponent in the face, then hammers down with a punch that knocks down (block it standing).
+
 ## Layout
 
 ```

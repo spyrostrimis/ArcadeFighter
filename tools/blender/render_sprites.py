@@ -4,10 +4,16 @@ Usage (Blender in background mode):
   C:/Blender/blender.exe -b -P tools/blender/render_sprites.py -- \
       --input CHARACTER.fbx|.blend [--anims DIR_WITH_MIXAMO_FBX] --out OUTDIR \
       [--actions idle,jab] [--step 2] [--yaw 30] [--elev 6] [--px 192] [--ppm 62] [--scale 4]
+      [--name MOVE] [--root-motion] [--frames 1-81]
 
 - The character must face -Y (Mixamo default). The camera looks from its left side,
   turned `yaw` degrees toward the front, so the character faces screen-right.
 - Every Mixamo animation FBX in --anims becomes an action named after the file.
+- --name: the input FBX itself carries the animation (Mixamo "With Skin" download):
+  name that action MOVE instead of treating it as the bind pose.
+- --root-motion: for moves that travel (dashes, jumps). The hips' ground travel and the
+  feet's height are taken out of every frame, so the sprite stays on its anchor, and are
+  written to meta.json as "root": [[forward_px, up_px], ...] for the game to move the fighter.
 - Output: OUTDIR/<action>/f_0000.png ... plus OUTDIR/meta.json (anchor pixel of the
   world origin = feet position, per action frame lists, fps).
 """
@@ -31,7 +37,7 @@ def arg(name, default=None):
 
 INPUT = arg("input")
 ANIMS = arg("anims")
-OUT = arg("out", "render_out")
+OUT = os.path.abspath(arg("out", "render_out"))
 ACTIONS = arg("actions")
 STEP = int(arg("step", "2"))
 YAW = float(arg("yaw", "50"))
@@ -40,7 +46,10 @@ PX = int(arg("px", "192"))           # final canvas size in game pixels
 PPM = float(arg("ppm", "64"))        # game pixels per metre (a 1.75 m person in a fighting stance ~ 115 px)
 SCALE = int(arg("scale", "4"))       # supersampling factor for the render
 OUTLINE_M = float(arg("outline", "0.012"))
-TEX = int(arg("tex", "192"))      # shrink textures to this size: removes photo noise, keeps colour areas
+TEX = int(arg("tex", "192"))
+NAME = arg("name")
+ROOT_MOTION = "--root-motion" in argv
+FRAMES = arg("frames")      # shrink textures to this size: removes photo noise, keeps colour areas
 
 # ---------------------------------------------------------------- load
 if INPUT.lower().endswith(".blend"):
@@ -53,7 +62,9 @@ arm = next(o for o in scene.objects if o.type == "ARMATURE")
 # the rigged character file from Mixamo carries its bind pose as "Armature|mixamo.com|Layer0"
 for a in bpy.data.actions:
     if "|" in a.name or "mixamo.com" in a.name:
-        a.name = "tpose"
+        a.name = NAME or "tpose"
+        if NAME:
+            a.use_fake_user = True
 if arm.animation_data is None:
     arm.animation_data_create()
 
@@ -232,14 +243,35 @@ for name in names:
     act = bpy.data.actions[name]
     assign(act)
     f0, f1 = (int(round(v)) for v in act.frame_range)
+    if FRAMES:
+        f0, f1 = (int(v) for v in FRAMES.split("-"))
     frames = []
+    root = []
+    hips = next((b for b in arm.pose.bones if b.name.endswith("Hips")), None)
+    base_loc = arm.location.copy()
+    h0 = None
     for i, f in enumerate(range(f0, f1 + 1, STEP)):
         scene.frame_set(f)
+        if ROOT_MOTION and hips is not None:
+            arm.location = base_loc
+            bpy.context.view_layer.update()
+            h = arm.matrix_world @ hips.head
+            low = min((arm.matrix_world @ b.head).z for b in arm.pose.bones)
+            if h0 is None:
+                h0 = h.copy()
+            lift = max(0.0, low - 0.02)
+            # character faces -Y; sideways drift (x) is depth for the side camera: drop it
+            arm.location = base_loc - Vector((h.x - h0.x, h.y - h0.y, lift))
+            bpy.context.view_layer.update()
+            root.append([round(-(h.y - h0.y) * PPM, 2), round(lift * PPM, 2)])
         path = os.path.join(OUT, name, f"f_{i:04d}.png")
         r.filepath = path
         bpy.ops.render.render(write_still=True)
         frames.append(os.path.basename(path))
     meta["actions"][name] = {"frames": frames, "src_range": [f0, f1]}
+    if root:
+        meta["actions"][name]["root"] = root
+    arm.location = base_loc
     print(f"rendered {name}: {len(frames)} frames")
 with open(os.path.join(OUT, "meta.json"), "w") as fh:
     json.dump(meta, fh, indent=1)

@@ -272,7 +272,7 @@ func _check(att: Fighter, def: Fighter) -> Dictionary:
 
 
 func _apply(att: Fighter, def: Fighter, at: Dictionary) -> void:
-	var m := att.cur_move()
+	var m := att.hit_data()
 	var strength: int = m["strength"]
 	var dir := signi(def.x - att.x)
 	if dir == 0:

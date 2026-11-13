@@ -59,7 +59,18 @@ static func _ced() -> Dictionary:
 			"j_lk": _mv(4, 10, 0, 35, 16, 12, [6, 10, 28, 16], G.HIGH),
 			"j_mk": _mv(6, 6, 0, 65, 19, 15, [8, 6, 34, 18], G.HIGH),
 			"j_hk": _mv(8, 6, 0, 105, 23, 17, [8, 2, 40, 20], G.HIGH),
+			# Flying knee (Mixamo animation): runs in, jumps, knee to the face, then a
+			# hammer punch on the way down (overhead, knocks down). Path from tools/mixamo_move.py.
+			"flying_knee": _mv(20, 26, 21, 90, 24, 18, [8, 4, 34, 60], G.HIGH, {
+				"path": MovePaths.DATA["ced/flying_knee"],
+				"hits": [
+					_mv(20, 8, 0, 50, 30, 18, [6, 46, 30, 30], G.HIGH),
+					_mv(36, 10, 0, 90, 24, 18, [8, 4, 34, 60], G.HIGH, {"kd": true}),
+				],
+			}),
 		},
+		# down, down-forward, forward + any punch
+		"specials": [{"motion": "qcf", "buttons": [2, 1, 0], "move": "flying_knee"}],
 	}
 
 

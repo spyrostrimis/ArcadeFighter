@@ -14,7 +14,9 @@ import os
 import sys
 
 import numpy as np
-from PIL import Image, ImageEnhance
+from PIL import Image
+
+import pixel_ops
 
 args = sys.argv[1:]
 RENDER, OUT, NAME = args[0], args[1], args[2]
@@ -33,26 +35,8 @@ meta = json.load(open(os.path.join(RENDER, "meta.json")))
 PX = meta["px"]
 
 
-def downscale(img: Image.Image) -> np.ndarray:
-    a = np.asarray(img.convert("RGBA"))
-    s = a.shape[0] // PX
-    h, w = PX, PX
-    blk = a[:h * s, :w * s].reshape(h, s, w, s, 4).transpose(0, 2, 1, 3, 4).reshape(h * w, s * s, 4)
-    alpha = blk[:, :, 3] > 127
-    keys = (blk[:, :, 0].astype(np.int64) << 16) | (blk[:, :, 1].astype(np.int64) << 8) | blk[:, :, 2]
-    keys = np.where(alpha, keys, -1)
-    eq = (keys[:, :, None] == keys[:, None, :]) & alpha[:, None, :]
-    counts = eq.sum(-1)
-    counts = np.where(alpha, counts, -1)
-    best = counts.argmax(1)
-    col = blk[np.arange(h * w), best, :3]
-    opaque = alpha.sum(1) * 2 >= s * s
-    out = np.zeros((h * w, 4), np.uint8)
-    rgb = Image.fromarray(col.reshape(h, w, 3).astype(np.uint8), "RGB")
-    rgb = ImageEnhance.Contrast(ImageEnhance.Color(rgb).enhance(SAT)).enhance(CONTRAST)
-    out[:, :3] = np.asarray(rgb).reshape(h * w, 3)
-    out[:, 3] = np.where(opaque, 255, 0)
-    return out.reshape(h, w, 4)
+def downscale(img):
+    return pixel_ops.downscale(img, PX, SAT, CONTRAST)
 
 
 # 1) downscale everything
@@ -61,50 +45,7 @@ for name, info in meta["actions"].items():
     anims[name] = [downscale(Image.open(os.path.join(RENDER, name, f))) for f in info["frames"]]
 
 # 2) one palette for all frames
-opaque_pixels = np.concatenate([f[f[:, :, 3] > 0][:, :3] for fr in anims.values() for f in fr])
-strip = Image.fromarray(opaque_pixels.reshape(1, -1, 3).astype(np.uint8), "RGB")
-pal_img = strip.quantize(colors=COLORS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
-
-
-def apply_palette(f: np.ndarray) -> np.ndarray:
-    rgb = Image.fromarray(f[:, :, :3], "RGB").quantize(palette=pal_img, dither=Image.Dither.NONE).convert("RGB")
-    out = f.copy()
-    out[:, :, :3] = np.asarray(rgb)
-    return out
-
-
-def despeckle(f: np.ndarray, passes: int = 2) -> np.ndarray:
-    """Replaces lone pixels with the colour most of their 8 neighbours share."""
-    out = f.copy()
-    h, w = f.shape[:2]
-    for _ in range(passes):
-        key = (out[:, :, 0].astype(np.int64) << 16) | (out[:, :, 1].astype(np.int64) << 8) | out[:, :, 2]
-        key = np.where(out[:, :, 3] > 0, key, -1)
-        pad = np.pad(key, 1, constant_values=-2)
-        neigh = np.stack([pad[1 + dy:h + 1 + dy, 1 + dx:w + 1 + dx] for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dy or dx], -1)
-        same = (neigh == key[:, :, None]).sum(-1)
-        counts = (neigh[:, :, :, None] == neigh[:, :, None, :]).sum(-1)
-        best = np.take_along_axis(neigh, counts.argmax(-1)[:, :, None], -1)[:, :, 0]
-        bestc = counts.max(-1)
-        fix = (same <= 1) & (bestc >= 4) & (key >= 0) & (best >= 0)
-        out[fix, 0] = (best[fix] >> 16) & 255
-        out[fix, 1] = (best[fix] >> 8) & 255
-        out[fix, 2] = best[fix] & 255
-    return out
-
-
-def add_outline(f: np.ndarray) -> np.ndarray:
-    a = f[:, :, 3] > 0
-    n = np.zeros_like(a)
-    n[1:, :] |= a[:-1, :]
-    n[:-1, :] |= a[1:, :]
-    n[:, 1:] |= a[:, :-1]
-    n[:, :-1] |= a[:, 1:]
-    edge = n & ~a
-    out = f.copy()
-    out[edge, :3] = OUTLINE
-    out[edge, 3] = 255
-    return out
+pal_img = pixel_ops.palette_from_frames([f for fr in anims.values() for f in fr], COLORS)
 
 
 # nothing may show below the floor line (e.g. a stiff cape hem sinking through the floor)
@@ -114,7 +55,8 @@ for name in anims:
         f[floor_y:, :, 3] = 0
 
 for name in anims:
-    anims[name] = [add_outline(despeckle(apply_palette(f))) for f in anims[name]]
+    anims[name] = [pixel_ops.add_outline(pixel_ops.despeckle(pixel_ops.apply_palette(f, pal_img)), OUTLINE)
+                   for f in anims[name]]
 
 # 3) crop per animation to the union box, pack rows
 os.makedirs(OUT, exist_ok=True)

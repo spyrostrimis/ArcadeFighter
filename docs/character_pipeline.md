@@ -77,3 +77,38 @@ JSON file, and preview GIFs. Touch up the sheet in Aseprite if you like, then th
 
 The pipeline was tested on `tools/blender/test_mannequin.blend` (a stand-in built by
 `tools/blender/make_mannequin.py`).
+
+## Mixing sources: one Mixamo move into a hand-made character
+
+A character's sprite sheet can mix sources: CED's idle and heavy punch are hand-made in Aseprite,
+his Flying Knee comes from a Mixamo animation. The `.aseprite` file is the hub: every source ends
+up there as a tag, so it can be touched up and is exported with everything else.
+
+1. On Mixamo, download the animation **With Skin** (FBX Binary, 30 fps) and **without** "In Place"
+   if the move travels (dash, jump-in). Save it as `art/<char>/moves/<move>.fbx`.
+2. Write `art/<char>/moves/<move>.json` (see `art/ced/moves/flying_knee.json`): speed per section
+   (`timing`), how far it travels (`fwd_scale`) and how high it jumps (`lift_scale`), and which
+   sprite sheet's colours to use (`palette`), so it matches the hand-made frames.
+3. Run:
+
+```bash
+python tools/mixamo_move.py art/ced/moves/flying_knee.json
+```
+
+```bash
+C:/Aseprite/Aseprite.exe -b --script-param file=art/ced/ced.aseprite --script-param dir=art/ced/moves/flying_knee --script-param tag=flying_knee --script-param ax=52 --script-param ay=127 --script-param count=17 --script tools/aseprite/import_frames.lua
+```
+
+```bash
+python tools/aseprite/export.py art/ced/ced.aseprite ced
+```
+
+   The first prints the frame count and anchor for the second. It renders the move in Blender with
+   the travel and jump taken out (the sprite stays on its feet anchor), pixelizes it, and writes the
+   travel/jump per game frame to `scripts/sim/move_paths.gd`; the game moves the fighter along that
+   path, so hit boxes, push boxes and rollback all follow it. A `preview.gif` shows the result.
+4. Add the move's frame data in `scripts/sim/char_data.gd` (a `"path"` and its `"hits"`) and how to
+   do it in `"specials"`.
+
+Re-running the import replaces the tag, so it is safe after changing the spec. Frames you retouch
+in Aseprite are overwritten by a re-import: retouch last.

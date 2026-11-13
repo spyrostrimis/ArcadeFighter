@@ -62,9 +62,7 @@ func _sprite_anim(fi: Fighter) -> String:
 func _sprite_index(fi: Fighter, anim: String) -> int:
 	var n := sprites.frame_count(anim)
 	if fi.state == Fighter.ATTACK:
-		var m := fi.cur_move()
-		var total: int = int(m["startup"]) + int(m["active"]) + maxi(1, int(m["recovery"]))
-		return clampi(fi.sf * n / total, 0, n - 1)
+		return clampi(fi.sf * n / fi.move_length(), 0, n - 1)
 	var clock := sim.frame + slot * 23
 	return int(clock * sprites.fps / 60.0) % n
 

@@ -10,11 +10,13 @@ const BUF := 5            # input buffer window (frames)
 const PREJUMP_FRAMES := 4
 const LIE_FRAMES := 40
 const GETUP_FRAMES := 24
+const MOTION_WINDOW := 12  # frames allowed between the steps of a motion (e.g. down, down-forward, forward)
 
 const SAVE_FIELDS := [
 	"x", "y", "vx", "vy", "facing", "health", "state", "sf", "move", "move_hit",
 	"stun", "crouched", "air_attacked", "jump_dir", "push_v", "fall_kd", "combo",
 	"inp", "prev_inp", "buf", "guarding", "invuln", "score", "wins", "land_len", "bounced",
+	"hit_idx", "qcf", "qcf_t",
 ]
 
 var slot := 0
@@ -48,6 +50,9 @@ var score := 0
 var wins := 0
 var land_len := 3
 var bounced := false
+var hit_idx := 0          # which hit of a multi-hit move is current
+var qcf := 0              # quarter-circle-forward progress: 1 down, 2 down-forward, 3 forward
+var qcf_t := 0            # frames left to continue the motion
 
 var ev: Array = []        # events for this frame (sound/effects), not saved
 
@@ -83,6 +88,9 @@ func reset_round(px_pos: int, face: int) -> void:
 	invuln = 0
 	land_len = 3
 	bounced = false
+	hit_idx = 0
+	qcf = 0
+	qcf_t = 0
 
 
 func save() -> Array:
@@ -129,10 +137,31 @@ func cur_move() -> Dictionary:
 	return moves[move]
 
 
+## Frame data of the current hit: the move itself, or one entry of a multi-hit move's "hits".
+func hit_data() -> Dictionary:
+	var m: Dictionary = moves[move]
+	if m.has("hits"):
+		return m["hits"][hit_idx]
+	return m
+
+
+## Moves that carry their own root motion (travel + height per frame, from the animation).
+func on_path() -> bool:
+	return state == ATTACK and moves[move].has("path")
+
+
+## Number of frames the current move lasts.
+func move_length() -> int:
+	var m: Dictionary = moves[move]
+	if m.has("path"):
+		return (m["path"] as Array).size()
+	return int(m["startup"]) + int(m["active"]) + maxi(1, int(m["recovery"]))
+
+
 func move_active() -> bool:
 	if state != ATTACK:
 		return false
-	var m: Dictionary = moves[move]
+	var m := hit_data()
 	var s: int = m["startup"]
 	return sf >= s and sf < s + int(m["active"])
 
@@ -193,7 +222,7 @@ func hurt_rects() -> Array[Rect2i]:
 		hb = data["hurt_stand"]
 	out.append(box_to_world(hb))
 	if state == ATTACK:
-		var m: Dictionary = moves[move]
+		var m := hit_data()
 		var s: int = m["startup"]
 		if sf >= s - 1 and sf < s + int(m["active"]) + int(m["recovery"]) / 2:
 			var b: Array = m["box"]
@@ -202,7 +231,7 @@ func hurt_rects() -> Array[Rect2i]:
 
 
 func hit_rect() -> Rect2i:
-	return box_to_world(cur_move()["box"])
+	return box_to_world(hit_data()["box"])
 
 
 ## Vertical extent of the push box (bottom, top) in px.
@@ -232,6 +261,41 @@ func read_buttons(age: bool) -> void:
 		elif age and buf[i] < 99:
 			buf[i] += 1
 	prev_inp = inp
+	if age:
+		_track_qcf()
+
+
+## Follows down -> down-forward -> forward. qcf == 3 means the motion is done
+## and a punch within the next frames does the special move.
+func _track_qcf() -> void:
+	var d := holds(Inp.DOWN)
+	var fw := holds(fwd_bit())
+	if d and not fw:
+		qcf = 1
+		qcf_t = MOTION_WINDOW
+	elif d and fw:
+		if qcf == 1:
+			qcf = 2
+			qcf_t = MOTION_WINDOW
+	elif fw and qcf == 2:
+		qcf = 3
+		qcf_t = MOTION_WINDOW
+	if qcf_t > 0:
+		qcf_t -= 1
+	if qcf_t <= 0:
+		qcf = 0
+
+
+## A special move whose motion is done and whose button was just pressed, or "".
+func _special() -> String:
+	for sp in data.get("specials", []):
+		if sp["motion"] == "qcf" and qcf == 3:
+			for i in sp["buttons"]:
+				if buf[i] <= BUF:
+					buf[i] = 99
+					qcf = 0
+					return sp["move"]
+	return ""
 
 
 ## Takes the strongest buffered button (index into Inp.BUTTONS) or -1.
@@ -258,6 +322,7 @@ func _to_neutral() -> void:
 func _start_move(mname: String) -> void:
 	move = mname
 	move_hit = 0
+	hit_idx = 0
 	set_state(ATTACK)
 	if not mname.begins_with("j_"):
 		vx = 0
@@ -320,6 +385,10 @@ func _neutral(opp: Fighter) -> void:
 	var fwd := holds(fwd_bit())
 	var bk := holds(back_bit())
 	guarding = bk and opp.is_threat_to(self)
+	var sp := _special()
+	if sp != "":
+		_start_move(sp)
+		return
 	var bi := _take()
 	if bi >= 0:
 		_start_move(("cr_" if down else "st_") + Inp.BUTTON_NAMES[bi])
@@ -349,6 +418,9 @@ func _neutral(opp: Fighter) -> void:
 
 
 func _attack(opp: Fighter) -> void:
+	if moves[move].has("path"):
+		_path_move(opp)
+		return
 	var m: Dictionary = moves[move]
 	var s: int = m["startup"]
 	var a: int = m["active"]
@@ -374,8 +446,35 @@ func _attack(opp: Fighter) -> void:
 		_neutral(opp)
 
 
+## Plays a root-motion move: position follows the animation's path, hits come in order.
+func _path_move(opp: Fighter) -> void:
+	var m: Dictionary = moves[move]
+	var path: Array = m["path"]
+	var hits: Array = m["hits"]
+	if hit_idx + 1 < hits.size() and sf >= int(hits[hit_idx + 1]["startup"]):
+		hit_idx += 1
+		move_hit = 0
+	if sf == int(hits[hit_idx]["startup"]):
+		ev.append({"t": "swing", "s": hits[hit_idx]["strength"]})
+	var i := mini(sf, path.size() - 1)
+	var prev: Array = path[i - 1] if i > 0 else path[0]
+	var was_up := y > 0
+	x += (int(path[i][0]) - int(prev[0])) * facing   # path is in 1/100 px, like x and y
+	y = int(path[i][1])
+	vx = 0
+	vy = 0
+	if was_up and y == 0:
+		ev.append({"t": "land"})
+	if sf >= path.size() - 1:
+		y = 0
+		_to_neutral()
+		_neutral(opp)
+
+
 func physics() -> void:
-	if airborne():
+	if on_path():
+		pass
+	elif airborne():
 		x += vx
 		y += vy
 		vy -= int(data["gravity"])

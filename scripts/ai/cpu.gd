@@ -151,7 +151,7 @@ func _can_act(me: Fighter) -> bool:
 func _max_reach(me: Fighter) -> int:
 	var best := 0
 	for k in me.moves:
-		if (k as String).begins_with("j_"):
+		if (k as String).begins_with("j_") or me.moves[k].has("path"):
 			continue
 		var b: Array = me.moves[k]["box"]
 		best = maxi(best, int(b[0]) + int(b[2]))
@@ -163,7 +163,7 @@ func _attack_for(me: Fighter, dist: int, combo: bool) -> int:
 	var options: Array = []
 	for k in me.moves:
 		var mname: String = k
-		if mname.begins_with("j_"):
+		if mname.begins_with("j_") or me.moves[mname].has("path"):
 			continue
 		var m: Dictionary = me.moves[mname]
 		var b: Array = m["box"]
