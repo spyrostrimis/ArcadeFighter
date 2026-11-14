@@ -3,8 +3,8 @@
 -- Poses are lined up by the back foot, so the feet stay planted between frames.
 local dir = app.params["dir"]
 local out = app.params["out"]
-local W, H = 128, 118
-local AX, AY = 48, 114    -- feet anchor on the canvas (soles land on AY)
+local W, H = 140, 118
+local AX, AY = 56, 114    -- feet anchor on the canvas (soles land on AY); room on the left for the sweep's hand
 -- measured on the 113 px stance, scaled to the poses' height (cutout_keys.py target)
 local POSE_H = Image{ fromFile = dir .. "/hp_1.png" }.height
 local k = POSE_H / 113
@@ -42,6 +42,19 @@ local windup, windupPos = load("hp_2.png")
 local half, halfPos = load("hp_3b.png")
 local punch, punchPos = load("hp_3.png")
 
+-- crouching poses (cr_hk sheet): lined up by the planted (back) boot, whose left edge is
+-- measured per pose on row POSE_H - 4 (the hand on the floor would fool load()). The
+-- crouch's feet are centred on the anchor; the sweep pivots on that boot.
+local CR_PLANT = 23   -- planted boot's left edge -> anchor (measured on the 92 px keys)
+local function loadAt(name, plantLeft)
+  local img = Image{ fromFile = dir .. "/" .. name }
+  return img, Point(AX - CR_PLANT - plantLeft, AY - img.height + 1)
+end
+local crouch, crouchPos = loadAt("cr_hk_2.png", 3)
+local sweepIn, sweepInPos = loadAt("cr_hk_3.png", 26)
+local sweep, sweepPos = loadAt("cr_hk_4.png", 27)
+local sweepOut, sweepOutPos = loadAt("cr_hk_5.png", 19)
+
 -- idle: breathing, upper body sinks and rises over planted legs
 local legsImg, upperImg = part(stance, WAIST, stance.height), part(stance, 0, WAIST)
 local bob = { 0, 0, 1, 1, 2, 2, 1, 1 }
@@ -71,9 +84,29 @@ for _, s in ipairs(seq) do
   local f = frame(s[3] / 15)
   spr:newCel(upper, f, s[1], s[2])
 end
+local hpEnd = n
+
+-- crouch: one held frame
+spr:newCel(upper, frame(1 / 15), crouch, crouchPos)
+local crouchAt = n
+
+-- cr_hk (9 startup, 3 active, 24 recovery = 9 steps): the sweep must be on screen by
+-- game frame 9, so only 2 steps before it (2 * 36/9 = 8 <= 9)
+local crFirst = n + 1
+local crSeq = {
+  { sweepIn, sweepInPos, 2 }, { sweep, sweepPos, 3 }, { sweepOut, sweepOutPos, 2 },
+  { crouch, crouchPos, 2 },
+}
+for _, s in ipairs(crSeq) do
+  local f = frame(s[3] / 15)
+  spr:newCel(upper, f, s[1], s[2])
+end
+
 -- tags last: frames added after a tag would stretch it
 spr:newTag(1, idleEnd).name = "idle"
-spr:newTag(first, n).name = "st_hp"
+spr:newTag(first, hpEnd).name = "st_hp"
+spr:newTag(crouchAt, crouchAt).name = "crouch"
+spr:newTag(crFirst, n).name = "cr_hk"
 
 -- shared palette, indexed like a real 16-bit sprite
 app.command.ColorQuantization{ ui = false, withAlpha = false, maxColors = 48, useRange = false }
