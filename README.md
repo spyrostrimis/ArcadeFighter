@@ -46,7 +46,11 @@ tests/simtest.gd            headless CPU-vs-CPU + rollback determinism test
 tests/nettest.gd            headless rollback sync test (latency, jitter, loss, disconnect, desync)
 tests/roomprobe.gd          real signalling + WebRTC connection in one process
 tests/online_pair.sh        two game windows host/join a room and play online matches
+tests/move_shot.gd          in-game screenshots of one move (+ hit boxes), for sprite work
 ```
+
+Character art: one move at a time from ChatGPT key-pose sheets, see
+[docs/move_workflow.md](docs/move_workflow.md).
 
 ## Tests
 
@@ -60,6 +64,6 @@ Debug launch options (after `--`): `--demo` (CPU vs CPU), `--p1=kros --p2=ced`,
 
 ## Next steps
 
-- Real sprite art: swap the procedural puppet for sprite sheets. Frame data and hitboxes stay in `char_data.gd`.
+- Real sprite art, move by move ([docs/move_workflow.md](docs/move_workflow.md)). Moves without sprites still use the procedural puppet.
 - Local 2 players: P2 input actions already exist. It needs P2 keyboard keys and a select screen for two players.
 - Online: add a TURN relay for players behind symmetric NAT (see docs/online.md, Limits).

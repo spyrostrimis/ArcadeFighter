@@ -74,8 +74,8 @@ local function move(seq)
 end
 -- st_mk (8 startup, 4 active, 15 recovery = 27 game frames ~ 7 steps)
 local mkA, mkB = move({ { chamber, 2 }, { mid, 2 }, { chamber, 2 }, { stance, 1 } })
--- st_hk (11 startup, 5 active, 23 recovery = 39 game frames ~ 10 steps)
-local hkA, hkB = move({ { chamber, 3 }, { high, 3 }, { chamber, 2 }, { stance, 2 } })
+-- st_hk (11 startup, 5 active, 23 recovery = 39 game frames ~ 10 steps); the kick shows from game frame 8
+local hkA, hkB = move({ { chamber, 2 }, { high, 4 }, { chamber, 2 }, { stance, 2 } })
 
 -- cape on its own (tools/aseprite/cape_cutout.py): blinks and fades away at round start
 local capeFrame = nil

@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image
 
 src, prefix, target_h = sys.argv[1], sys.argv[2], int(sys.argv[3])
+ref = int(sys.argv[sys.argv.index("--ref") + 1]) if "--ref" in sys.argv else 0
 a = np.asarray(Image.open(src).convert("RGB")).astype(int)
 r, g, b = a[..., 0], a[..., 1], a[..., 2]
 fg = ~((b > g + 60) & (r > g + 60))          # anything that isn't magenta
@@ -25,6 +26,12 @@ while x < len(col):
 rows = np.where(fg.any(1))[0]
 top, bot = rows.min(), rows.max()            # shared floor line = lowest sole
 scale = (bot - top + 1) / target_h
+if ref:                                      # scale from the stance; its sole is the floor
+    rx0, rx1 = runs[ref - 1]
+    rrows = np.where(fg[:, rx0:rx1 + 1].any(1))[0]
+    bot = rrows.max()
+    scale = (bot - rrows.min() + 1) / target_h
+    target_h = round((bot - top + 1) / scale)   # taller canvas if a pose reaches above the stance
 
 outs = []
 for i, (x0, x1) in enumerate(runs, 1):
