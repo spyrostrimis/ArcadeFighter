@@ -39,13 +39,13 @@ func has(anim: String) -> bool:
 
 
 ## Draws frame `index` of `anim` with its feet anchor at the canvas origin.
-func draw_frame(ci: CanvasItem, anim: String, index: int) -> void:
+func draw_frame(ci: CanvasItem, anim: String, index: int, modulate := Color.WHITE) -> void:
 	var a: Dictionary = anims[anim]
 	var frames: Array = a["frames"]
 	var i := posmod(index, frames.size())
 	var r: Rect2 = frames[i]
 	var anchor: Vector2 = a["anchors"][i]
-	ci.draw_texture_rect_region(tex, Rect2(-anchor, r.size), r)
+	ci.draw_texture_rect_region(tex, Rect2(-anchor, r.size), r, modulate)
 
 
 func frame_count(anim: String) -> int:

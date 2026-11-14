@@ -75,7 +75,7 @@ local mkA, mkB = move({ { chamber, 2 }, { mid, 2 }, { chamber, 2 }, { stance, 1 
 -- st_hk (11 startup, 5 active, 23 recovery = 39 game frames ~ 10 steps)
 local hkA, hkB = move({ { chamber, 3 }, { high, 3 }, { chamber, 2 }, { stance, 2 } })
 
--- cape on its own (tools/aseprite/cape_cutout.py), for the round-start cape toss
+-- cape on its own (tools/aseprite/cape_cutout.py): blinks and fades away at round start
 local capeFrame = nil
 if app.fs.isFile(dir .. "/" .. prefix .. "_only.png") then
   local capeLayer = spr:newLayer()
@@ -88,7 +88,7 @@ end
 spr:newTag(1, idleEnd).name = "idle"
 spr:newTag(mkA, mkB).name = "st_mk"
 spr:newTag(hkA, hkB).name = "st_hk"
-if capeFrame then spr:newTag(n, n).name = "cape_toss" end
+if capeFrame then spr:newTag(n, n).name = "cape" end
 
 -- shared palette, indexed like a real 16-bit sprite
 app.command.ColorQuantization{ ui = false, withAlpha = false, maxColors = 48, useRange = false }

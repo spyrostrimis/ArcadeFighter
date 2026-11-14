@@ -1,9 +1,10 @@
-"""Cut KROS's cape out on its own, for the round-start cape toss.
-The cape = what the caped stance has outside the cape-less stance's silhouette (lined up by
-the feet, the way build_kros.lua lines them up). Where the body was in front of the cape,
-each row is filled between the cape's edges with the dark inside of the cape, so it reads as
-a whole cloth once it flies off.
-Usage: python tools/aseprite/cape_cutout.py art/kros/keys/cape_1.png art/kros/keys/nocape_1.png art/kros/keys/cape_only.png
+"""Cut KROS's cape out on its own: the cape = what the caped stance has outside the cape-less
+stance's silhouette (lined up by the feet, the way build_kros.lua lines them up). Drawn behind
+the cape-less idle it looks like the caped idle, so the cape can blink and fade on its own at
+round start (FighterView).
+With --fill, the gaps the body was covering are filled with the cape's dark lining, so it reads
+as a whole cloth away from the body (for a future cape toss).
+Usage: python tools/aseprite/cape_cutout.py art/kros/keys/cape_1.png art/kros/keys/nocape_1.png art/kros/keys/cape_only.png [--fill]
 Output has the same size and feet position as the first input."""
 import sys
 import numpy as np
@@ -41,7 +42,7 @@ out[keep] = cape[keep]
 # fill between the cape's outer edges, row by row and column by column, so the parts the
 # body was covering (chest, arms) close up into one cloth
 fill = keep.copy()
-for _ in range(2):
+for _ in range(2 if "--fill" in sys.argv else 0):
     for y in range(h):
         xs = np.where(fill[y])[0]
         if len(xs) >= 2:

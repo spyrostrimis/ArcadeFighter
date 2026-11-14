@@ -12,13 +12,13 @@ var t := 0.0
 
 var sprites: SpriteSet
 var alt_palette := false
-## Bison-style cape: the fighter starts each round in `cape_sprites` and throws the cape
-## off during the round intro, then fights in `sprites`. Purely visual, read from the sim's
-## phase/frame counter, so it replays the same under rollback.
+## Bison-style cape: the fighter starts each round in `cape_sprites`; during the round intro
+## the cape blinks and fades away in place, then he fights in `sprites`. Purely visual, read
+## from the sim's phase/frame counter, so it replays the same under rollback.
 var cape_sprites: SpriteSet = null
 const CAPED := {"kros": "kros_nocape"}   # fighter id -> its sprite set once the cape is off
-const TOSS_AT := 40     # intro frame the cape comes off ("ROUND n" is on screen 8-70)
-const CAPE_PIVOT := Vector2(0, -60)
+const FADE_AT := 24     # intro frame the cape starts blinking ("ROUND n" is on screen 8-70)
+const FADE_LEN := 44    # frames until it is gone
 
 
 ## `skin` picks another sprite set for the same fighter (e.g. "kros_nocape": KROS without
@@ -32,31 +32,33 @@ func setup(p_sim: MatchSim, p_slot: int, alt: bool, skin := "") -> void:
 	sprites = SpriteSet.load_for(skin if skin != "" else cid)
 	if skin == "" and CAPED.has(cid):
 		var off := SpriteSet.load_for(CAPED[cid])
-		if off != null and sprites != null and sprites.has("cape_toss"):
+		if off != null and sprites != null and sprites.has("cape"):
 			cape_sprites = sprites
 			sprites = off
 
 
-## The sprite set to draw now: still wearing the cape during the round intro before the toss.
+## Frames into the cape fade (-1 = not fading: wearing it before, gone after).
+func _cape_t() -> int:
+	if cape_sprites == null or sim.phase != MatchSim.INTRO:
+		return -1
+	var k := sim.pf - FADE_AT
+	return k if k < FADE_LEN else -1
+
+
+## The sprite set to draw now: the caped one during the round intro until the cape fades.
 func _sprites_now() -> SpriteSet:
-	if cape_sprites != null and sim.phase == MatchSim.INTRO and sim.pf < TOSS_AT:
+	if cape_sprites != null and sim.phase == MatchSim.INTRO and sim.pf < FADE_AT:
 		return cape_sprites
 	return sprites
 
 
-## The thrown cape: flies up and back, flapping and turning, until it leaves the screen.
-func _draw_flying_cape(base: Vector2, facing: int) -> void:
-	if cape_sprites == null or sim.phase != MatchSim.INTRO or sim.pf < TOSS_AT:
+## The fading cape, drawn behind the cape-less body: blinks faster and fainter until it's gone.
+func _draw_fading_cape(k: int) -> void:
+	var period := maxi(1, 6 - k / 8)          # 6 frames on/off at first, down to every frame
+	if (k / period) % 2 == 1:
 		return
-	var t := float(sim.pf - TOSS_AT)
-	var off := Vector2(-1.4 * t - 0.01 * t * t, -3.2 * t - 0.03 * t * t)
-	var flap := 1.0 - 0.35 * absf(sin(t * 0.16))
-	var xf := Transform2D(0.0, Vector2(facing, 1), 0.0, base)
-	xf *= Transform2D(-0.025 * t, Vector2(flap, 1), 0.0, off + CAPE_PIVOT)
-	xf *= Transform2D(0.0, -CAPE_PIVOT)
-	draw_set_transform_matrix(xf)
-	cape_sprites.draw_frame(self, "cape_toss", 0)
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var a := 1.0 - float(k) / FADE_LEN
+	cape_sprites.draw_frame(self, "cape", 0, Color(1, 1, 1, 0.35 + 0.65 * a))
 
 
 ## Which sprite animation shows this state ("" = none yet, use the placeholder puppet).
@@ -100,6 +102,8 @@ func _sprite_index(fi: Fighter, anim: String) -> int:
 	var n := _sprites_now().frame_count(anim)
 	if fi.state == Fighter.ATTACK:
 		return clampi(fi.sf * n / fi.move_length(), 0, n - 1)
+	if _cape_t() >= 0:
+		return 0   # hold still while the cape fades: it doesn't breathe with the body
 	var clock := sim.frame + slot * 23
 	return int(clock * _sprites_now().fps / 60.0) % n
 
@@ -119,13 +123,13 @@ func _draw() -> void:
 	var h := fi.y / 100.0
 	var sw := maxf(10.0, 26.0 - h * 0.12)
 	_ellipse(Vector2(base.x, FLOOR_Y - 1), sw, 3.5, Color(0, 0, 0, 0.35))
-	if not alt_palette:
-		_draw_flying_cape(base, fi.facing)
 	draw_set_transform(base, 0.0, Vector2(fi.facing, 1))
 	z_index = 1 if fi.state == Fighter.ATTACK else 0
 	if sprites != null and not alt_palette:
 		var anim := _sprite_anim(fi)
 		if anim != "":
+			if _cape_t() >= 0:
+				_draw_fading_cape(_cape_t())
 			_sprites_now().draw_frame(self, anim, _sprite_index(fi, anim))
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			return
