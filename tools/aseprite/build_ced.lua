@@ -4,10 +4,13 @@
 local dir = app.params["dir"]
 local out = app.params["out"]
 local W, H = 128, 118
-local FOOT_ROW = 108      -- row used to find the back foot's left edge
 local AX, AY = 48, 114    -- feet anchor on the canvas (soles land on AY)
-local BACK_TO_ANCHOR = 44 -- back foot's left edge -> anchor, measured on the stance
-local WAIST = 52          -- stance rows from here down belong to the legs layer
+-- measured on the 113 px stance, scaled to the poses' height (cutout_keys.py target)
+local POSE_H = Image{ fromFile = dir .. "/hp_1.png" }.height
+local k = POSE_H / 113
+local FOOT_ROW = POSE_H - 5                        -- row used to find the back foot's left edge
+local BACK_TO_ANCHOR = math.floor(44 * k + 0.5)    -- back foot's left edge -> anchor
+local WAIST = math.floor(52 * k + 0.5)             -- stance rows from here down = legs layer
 
 local function load(name)
   local img = Image{ fromFile = dir .. "/" .. name }

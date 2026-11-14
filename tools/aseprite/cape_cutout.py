@@ -10,12 +10,11 @@ import sys
 import numpy as np
 from PIL import Image
 
-SOLE_ROW = 107
 INSIDE = np.array([[58, 12, 24], [74, 16, 30], [46, 9, 20]])   # velvet lining, 3 tones
 
 
 def feet(op):
-    x = np.where(op[SOLE_ROW])[0]
+    x = np.where(op[op.shape[0] - 3])[0]   # a row through the soles
     return (x.min() + x.max()) // 2
 
 

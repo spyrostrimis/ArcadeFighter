@@ -19,6 +19,8 @@ var cape_sprites: SpriteSet = null
 const CAPED := {"kros": "kros_nocape"}   # fighter id -> its sprite set once the cape is off
 const FADE_AT := 24     # intro frame the cape starts blinking ("ROUND n" is on screen 8-70)
 const FADE_LEN := 44    # frames until it is gone
+## Placeholder puppet size -> sprite size (CED 113 -> 92 px, KROS 110 -> 97 px).
+const PUPPET_SCALE := {"ced": 92.0 / 113.0, "kros": 97.0 / 110.0}
 
 
 ## `skin` picks another sprite set for the same fighter (e.g. "kros_nocape": KROS without
@@ -137,6 +139,9 @@ func _draw() -> void:
 	var sway := sin(t * 0.07) * 2.0 + clampf(fi.vx * fi.facing / 60.0, -4.0, 6.0)
 	if fi.state == Fighter.WIN:
 		sway += 6.0 + sin(t * 0.15) * 3.0
+	# the puppet was built for the old, taller sprites: shrink it to the sprites' height
+	var k: float = PUPPET_SCALE.get(fi.cid, 1.0)
+	draw_set_transform(base, 0.0, Vector2(fi.facing * k, k))
 	Puppet.draw(self, fi.cid, pal, pose, sway)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	z_index = 1 if fi.state == Fighter.ATTACK else 0

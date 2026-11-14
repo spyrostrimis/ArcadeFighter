@@ -96,7 +96,7 @@ python tools/mixamo_move.py art/ced/moves/flying_knee.json
 ```
 
 ```bash
-C:/Aseprite/Aseprite.exe -b --script-param file=art/ced/ced.aseprite --script-param dir=art/ced/moves/flying_knee --script-param tag=flying_knee --script-param ax=52 --script-param ay=127 --script-param count=17 --script tools/aseprite/import_frames.lua
+C:/Aseprite/Aseprite.exe -b --script-param file=art/ced/ced.aseprite --script-param dir=art/ced/moves/flying_knee --script-param tag=flying_knee --script-param ax=43 --script-param ay=104 --script-param count=17 --script tools/aseprite/import_frames.lua
 ```
 
 ```bash
@@ -119,7 +119,7 @@ Like CED, KROS's moves come from ChatGPT key-pose sheets (figures on flat magent
 costume with the same three poses (stance, knee chamber, high kick): `art/kros/ref/kicks_cape.webp`
 and `art/kros/ref/kicks_nocape.webp`. The mid kick is made from the high kick by lowering the leg.
 Each costume is its own `.aseprite` file and sprite set: `kros` (cape) and `kros_nocape`. Both have
-`idle`, `st_mk` and `st_hk`, 110 px tall. In a match KROS wears the cape at the start of each round; during the "ROUND n" banner it blinks
+`idle`, `st_mk` and `st_hk`, 97 px tall (a little taller than CED's 92). In a match KROS wears the cape at the start of each round; during the "ROUND n" banner it blinks
 and fades away in place (`FighterView`, `CAPED` / `FADE_AT` / `FADE_LEN`), then he fights in
 `kros_nocape`. The fading cape is the `cape` tag of `kros.aseprite`, cut out by
 `tools/aseprite/cape_cutout.py` (`art/kros/keys/cape_1.png art/kros/keys/nocape_1.png art/kros/keys/cape_only.png`)
@@ -131,7 +131,7 @@ python tools/aseprite/rotate_limb.py art/kros/ref/kicks_cape.webp art/kros/ref/k
 ```
 
 ```bash
-python tools/aseprite/cutout_keys.py art/kros/ref/kicks_cape_mk.png art/kros/keys/cape 110
+python tools/aseprite/cutout_keys.py art/kros/ref/kicks_cape_mk.png art/kros/keys/cape 97
 ```
 
 ```bash
@@ -144,3 +144,11 @@ python tools/aseprite/export.py art/kros/kros.aseprite kros
 
 The same four with `nocape` / `kros_nocape` make the other costume. In-game check:
 `godot --path . --script res://tests/kros_shot.gd -- --out=DIR [--skin=kros]` (a skin forces one costume, no cape fade).
+
+## Character height
+
+Street Fighter scale: Ryu stands 0.43 of the screen height in Street Fighter Alpha, so on our
+216 px screen CED is **92 px** (cut with `cutout_keys.py ... 92`) and KROS, a little taller,
+**97 px**. Mixamo moves for CED use `"ppm": 49`. Hit and hurt boxes in `scripts/sim/char_data.gd`
+are sized to these heights; the placeholder puppet is shrunk to match (`FighterView.PUPPET_SCALE`).
+CED's half-punch frame: `python tools/aseprite/inbetween_arm.py art/ced/keys/hp_3.png art/ced/keys/hp_3b.png 68 8 27 12`.

@@ -71,17 +71,17 @@ func get_input(sim: MatchSim) -> int:
 		if not _decided.has(key2):
 			_decided = {key2: rng.randf() < aa_rate}
 		if _decided[key2]:
-			if op.vy < 0 and dist < 64 and op.y < 70 * 100:
+			if op.vy < 0 and dist < 54 and op.y < 60 * 100:
 				return _finish(Inp.DOWN | _button(Inp.HP))
-			return _finish(Inp.DOWN if dist > 64 else 0)
+			return _finish(Inp.DOWN if dist > 54 else 0)
 		return _finish(away)
 
 	# My own jump: attack on the way down.
-	if me.state == Fighter.AIR and not me.air_attacked and me.vy < 0 and dist < 60:
+	if me.state == Fighter.AIR and not me.air_attacked and me.vy < 0 and dist < 51:
 		return _finish(_button([Inp.HK, Inp.HP, Inp.MK][rng.randi() % 3]))
 
 	# Follow up when the opponent is reeling.
-	if op.state == Fighter.HITSTUN and dist < 56 and _can_act(me):
+	if op.state == Fighter.HITSTUN and dist < 48 and _can_act(me):
 		return _finish(_attack_for(me, dist, true))
 
 	# Opponent knocked down: walk up and wait.

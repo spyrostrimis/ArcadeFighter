@@ -1,11 +1,11 @@
 {
  "fbx": "art/ced/moves/flying_knee.fbx",
  "timing": [[1, 16, 1.5], [16, 49, 1.0], [49, 58, 1.0], [58, 73, 2.5], [73, 81, 1.0]],
- "fwd_scale": 0.6,
+ "fwd_scale": 0.74,
  "lift_scale": 0.5,
  "ground": [[1, 17]],
  "every": 4,
- "ppm": 60,
+ "ppm": 49,
  "yaw": 50,
  "palette": "assets/fighters/ced/ced.png",
  "outline": "0d0309"

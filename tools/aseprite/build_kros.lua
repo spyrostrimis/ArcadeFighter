@@ -10,8 +10,10 @@ local prefix = app.params["prefix"]
 local out = app.params["out"]
 local W, H = 172, 116
 local AX, AY = 74, 112    -- feet anchor on the canvas (soles land on AY)
-local SOLE_ROW = 107      -- row used to find the feet
-local WAIST = 55          -- stance rows from here down belong to the legs layer
+-- measured on the 110 px stance, scaled to the poses' height (cutout_keys.py target)
+local POSE_H = Image{ fromFile = dir .. "/" .. prefix .. "_1.png" }.height
+local SOLE_ROW = POSE_H - 3                              -- row used to find the feet
+local WAIST = math.floor(55 * POSE_H / 110 + 0.5)        -- stance rows from here down = legs layer
 
 local function load(n)
   local img = Image{ fromFile = dir .. "/" .. prefix .. "_" .. n .. ".png" }

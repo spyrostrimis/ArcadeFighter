@@ -1,6 +1,6 @@
 """Cut CED's key poses out of a ChatGPT sheet (figures on flat magenta, side by side)
 and scale them to game size. All poses share one scale so they line up.
-Usage: python tools/aseprite/cutout_keys.py art/ced/ref/hp_keys.webp art/ced/keys/hp 113
+Usage: python tools/aseprite/cutout_keys.py art/ced/ref/hp_keys.webp art/ced/keys/hp 92
 Writes <prefix>_1.png, _2.png ... (RGBA, feet on the bottom row) and a 4x preview."""
 import sys
 import numpy as np
