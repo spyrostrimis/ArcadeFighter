@@ -44,6 +44,7 @@ assets/stages/bedroom.png   stage art (512x216; feet stand on y=200)
 tools/gen_stage.py          regenerates the placeholder stage
 tests/simtest.gd            headless CPU-vs-CPU + rollback determinism test
 tests/nettest.gd            headless rollback sync test (latency, jitter, loss, disconnect, desync)
+tests/jitter_test.gd        headless check that fighters don't flicker between poses ("trembling")
 tests/roomprobe.gd          real signalling + WebRTC connection in one process
 tests/online_pair.sh        two game windows host/join a room and play online matches
 tests/move_shot.gd          in-game screenshots of one move (+ hit boxes), for sprite work
@@ -57,6 +58,7 @@ Character art: one move at a time from ChatGPT key-pose sheets, see
 ```bash
 C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/simtest.gd
 C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/nettest.gd
+C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/jitter_test.gd
 ```
 
 Debug launch options (after `--`): `--demo` (CPU vs CPU), `--p1=kros --p2=ced`,

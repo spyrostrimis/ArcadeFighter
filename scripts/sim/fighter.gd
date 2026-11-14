@@ -7,16 +7,17 @@ enum { IDLE, WALK, CROUCH, PREJUMP, AIR, LAND, ATTACK, HITSTUN, BLOCKSTUN, FALL,
 
 const SUB := 100
 const BUF := 5            # input buffer window (frames)
-const PREJUMP_FRAMES := 4
+const PREJUMP_FRAMES := 3
 const LIE_FRAMES := 40
 const GETUP_FRAMES := 24
+const GUARD_HOLD := 6      # frames the guard pose stays up after a threat ends (no flicker between attacks)
 const MOTION_WINDOW := 12  # frames allowed between the steps of a motion (e.g. down, down-forward, forward)
 
 const SAVE_FIELDS := [
 	"x", "y", "vx", "vy", "facing", "health", "state", "sf", "move", "move_hit",
 	"stun", "crouched", "air_attacked", "jump_dir", "push_v", "fall_kd", "combo",
 	"inp", "prev_inp", "buf", "guarding", "invuln", "score", "wins", "land_len", "bounced",
-	"hit_idx", "qcf", "qcf_t",
+	"hit_idx", "qcf", "qcf_t", "guard_t",
 ]
 
 var slot := 0
@@ -53,6 +54,7 @@ var bounced := false
 var hit_idx := 0          # which hit of a multi-hit move is current
 var qcf := 0              # quarter-circle-forward progress: 1 down, 2 down-forward, 3 forward
 var qcf_t := 0            # frames left to continue the motion
+var guard_t := 0          # guard pose frames left while holding back (see GUARD_HOLD)
 
 var ev: Array = []        # events for this frame (sound/effects), not saved
 
@@ -91,6 +93,7 @@ func reset_round(px_pos: int, face: int) -> void:
 	hit_idx = 0
 	qcf = 0
 	qcf_t = 0
+	guard_t = 0
 
 
 func save() -> Array:
@@ -384,7 +387,13 @@ func _neutral(opp: Fighter) -> void:
 	var down := holds(Inp.DOWN)
 	var fwd := holds(fwd_bit())
 	var bk := holds(back_bit())
-	guarding = bk and opp.is_threat_to(self)
+	if bk and opp.is_threat_to(self):
+		guard_t = GUARD_HOLD
+	elif not bk:
+		guard_t = 0
+	elif guard_t > 0:
+		guard_t -= 1
+	guarding = bk and guard_t > 0
 	var sp := _special()
 	if sp != "":
 		_start_move(sp)

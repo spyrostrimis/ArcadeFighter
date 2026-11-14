@@ -15,6 +15,7 @@ func _init() -> void:
 				print("  !! match did not finish")
 				ok = false
 	ok = _determinism() and ok
+	ok = _sprite_timing() and ok
 	print("RESULT: ", "PASS" if ok else "FAIL")
 	quit(0 if ok else 1)
 
@@ -61,3 +62,31 @@ func _determinism() -> bool:
 	var end2 := str(sim.save_state())
 	print("determinism (save/restore/replay): ", "OK" if end1 == end2 else "MISMATCH")
 	return end1 == end2
+
+
+## Sprite moves show frame `sf * n / total`: the hit pose (the widest frame) must be on
+## screen by the first active frame, or the hit lands on the wind-up pose.
+func _sprite_timing() -> bool:
+	var ok := true
+	for skin in [["ced", "ced"], ["kros", "kros"], ["kros", "kros_nocape"]]:
+		var moves: Dictionary = CharData.get_data(skin[0])["moves"]
+		var ss := SpriteSet.load_for(skin[1])
+		if ss == null:
+			continue
+		for mname in moves:
+			var m: Dictionary = moves[mname]
+			if not ss.has(mname) or m.has("path"):
+				continue
+			var frames: Array = ss.anims[mname]["frames"]
+			var n := frames.size()
+			var hit := 0
+			for i in n:
+				if (frames[i] as Rect2).size.x > (frames[hit] as Rect2).size.x:
+					hit = i
+			var total := int(m["startup"]) + int(m["active"]) + maxi(1, int(m["recovery"]))
+			var shown := ceili(float(hit) * total / n)   # first sim frame showing the hit pose
+			var good := shown <= int(m["startup"])
+			print("sprite timing %s %s: hit pose at frame %d, startup %d %s" % [
+				skin[1], mname, shown, m["startup"], "OK" if good else "LATE"])
+			ok = ok and good
+	return ok
