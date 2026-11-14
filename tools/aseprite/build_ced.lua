@@ -101,12 +101,43 @@ for _, s in ipairs(crSeq) do
   local f = frame(s[3] / 15)
   spr:newCel(upper, f, s[1], s[2])
 end
+local crEnd = n
+
+-- walk (walk sheet): weight first, then the free foot moves. 1 stance, 2 back foot up,
+-- 3 feet together, 4 front foot up, 5 front foot reaching. The guard is the same in every
+-- pose, so the poses are lined up by the head (left edge of its top rows) on the idle
+-- stance's head: the body glides at the sim's walk speed and the legs step under it.
+-- Looping animations play one frame per step; walk_b is the same cycle backwards.
+local function headLeft(img)
+  for x = 0, img.width - 1 do
+    for y = 0, 11 do
+      if app.pixelColor.rgbaA(img:getPixel(x, y)) > 0 then return x end
+    end
+  end
+  return 0
+end
+local stanceHead = stancePos.x + headLeft(stance)
+local walk = {}
+for i = 1, 5 do
+  local img = Image{ fromFile = dir .. "/walk_" .. i .. ".png" }
+  walk[i] = { img, Point(stanceHead - headLeft(img), AY - img.height + 1) }
+end
+local function walkCycle(order)
+  local from = n + 1
+  for _, i in ipairs(order) do spr:newCel(upper, frame(1 / 15), walk[i][1], walk[i][2]) end
+  return from
+end
+local wfFirst = walkCycle({ 1, 2, 3, 4, 5 })
+local wfEnd = n
+local wbFirst = walkCycle({ 5, 4, 3, 2, 1 })
 
 -- tags last: frames added after a tag would stretch it
 spr:newTag(1, idleEnd).name = "idle"
 spr:newTag(first, hpEnd).name = "st_hp"
 spr:newTag(crouchAt, crouchAt).name = "crouch"
-spr:newTag(crFirst, n).name = "cr_hk"
+spr:newTag(crFirst, crEnd).name = "cr_hk"
+spr:newTag(wfFirst, wfEnd).name = "walk_f"
+spr:newTag(wbFirst, n).name = "walk_b"
 
 -- shared palette, indexed like a real 16-bit sprite
 app.command.ColorQuantization{ ui = false, withAlpha = false, maxColors = 48, useRange = false }

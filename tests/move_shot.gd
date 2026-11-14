@@ -5,7 +5,8 @@ extends SceneTree
 ## are drawn over the sprites, to line the frame data up with the art.
 ## Run (not headless):
 ## godot --path . --script res://tests/move_shot.gd -- --char=ced --move=st_hk --out=DIR [--vs=kros] [--boxes] [--skin=ID]
-## MOVE: st_/cr_/j_ + lp/mp/hp/lk/mk/hk. --skin = sprite set for CHAR (e.g. kros_nocape).
+## MOVE: st_/cr_/j_ + lp/mp/hp/lk/mk/hk, or walk_f / walk_b (walks 48 frames from the start).
+## --skin = sprite set for CHAR (e.g. kros_nocape).
 
 var sim: MatchSim
 var world: Node2D
@@ -20,6 +21,9 @@ var t0 := -1        # frame the move's button is pressed
 var pending := ""   # screenshot to save once the last stepped frame has been drawn
 var pending_k := 0
 var sheet: Array[Image] = []
+var sheet_x: Array[int] = []   # walks: CHAR's screen x in each sheet image (the crop follows it)
+var pending_x := 0
+const WALK_FRAMES := 48   # 2.4 walk cycles
 
 
 class Boxes extends Node2D:
@@ -51,8 +55,9 @@ func _init() -> void:
 		if a.begins_with("--skin="): skin = a.substr(7)
 		if a == "--boxes": boxes = true
 	sim = MatchSim.new(cid, vs)
-	var m: Dictionary = CharData.get_data(cid)["moves"][move]
-	reach = int(m["box"][0]) + int(m["box"][2]) + 6
+	if not move.begins_with("walk_"):
+		var m: Dictionary = CharData.get_data(cid)["moves"][move]
+		reach = int(m["box"][0]) + int(m["box"][2]) + 6
 	world = Node2D.new()
 	root.add_child(world)
 	var bg := Sprite2D.new()
@@ -78,6 +83,10 @@ func _input_p1() -> int:
 	if sim.phase != MatchSim.FIGHT:
 		return 0
 	var a := sim.f[0]
+	if move.begins_with("walk_"):
+		if t0 < 0:
+			t0 = sim.frame
+		return Inp.RIGHT if move == "walk_f" else Inp.LEFT
 	if t0 < 0:
 		var gap := (sim.f[1].x - a.x) / 100
 		if move.begins_with("j_"):
@@ -103,32 +112,40 @@ func _process(_d: float) -> bool:
 		if pending_k % 4 == 0:
 			img.convert(Image.FORMAT_RGBA8)
 			sheet.append(img)
+			sheet_x.append(pending_x)
 		pending = ""
-	sim.step(_input_p1(), 0)
+	# walks: VS backs away (holds right) so CHAR has room to walk forward
+	sim.step(_input_p1(), Inp.RIGHT if move == "walk_f" and sim.phase == MatchSim.FIGHT else 0)
 	world.position = Vector2(-sim.cam_x, 0)
 	if t0 >= 0:
 		var k := sim.frame - t0
 		var done := sim.f[0].state != Fighter.ATTACK and k > 4
+		if move.begins_with("walk_"):
+			done = k > WALK_FRAMES
 		if done or k > 90:
 			_save_sheet()
 			return true
 		if k % 2 == 0:
 			pending = "%s/%s_%s_%03d.png" % [out, cid, move, k]
 			pending_k = k
+			pending_x = int(sim.f[0].x / 100.0 - sim.cam_x)
 	return false
 
 
-## Every 4th frame side by side, cropped around both fighters, 2x.
+## Every 4th frame side by side, cropped around both fighters (walks: around CHAR), 2x.
 func _save_sheet() -> void:
 	if sheet.is_empty():
 		return
 	var cx := int((sim.f[0].x + sim.f[1].x) / 200.0 - sim.cam_x)
-	var cw := 200
+	var walking := move.begins_with("walk_")
+	var cw := 120 if walking else 200
 	var x0 := clampi(cx - cw / 2, 0, 384 - cw)
 	var cols := mini(sheet.size(), 6)
 	var rows := ceili(sheet.size() / float(cols))
 	var s := Image.create(cw * cols, 150 * rows, false, Image.FORMAT_RGBA8)
 	for i in sheet.size():
+		if walking:
+			x0 = clampi(sheet_x[i] - cw / 2, 0, 384 - cw)
 		s.blit_rect(sheet[i], Rect2i(x0, 60, cw, 150), Vector2i((i % cols) * cw, (i / cols) * 150))
 	s.resize(s.get_width() * 2, s.get_height() * 2, Image.INTERPOLATE_NEAREST)
 	s.save_png("%s/%s_%s_sheet.png" % [out, cid, move])

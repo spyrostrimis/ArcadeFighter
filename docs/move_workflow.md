@@ -56,7 +56,7 @@ Both face **right** in all art (the game mirrors them).
 
 | Character | Moves with sprites |
 |---|---|
-| CED | `idle`, `crouch`, `st_hp`, `cr_hk`, `flying_knee` (Mixamo, see `docs/character_pipeline.md`) |
+| CED | `idle`, `crouch`, `st_hp`, `cr_hk`, `walk_f`, `walk_b`, `flying_knee` (Mixamo, see `docs/character_pipeline.md`) |
 | KROS | `idle`, `st_mk`, `st_hk` (both costumes), `cr_hk` (no cape), `cape` |
 
 Update this table when a move is added.
@@ -100,6 +100,16 @@ Character-specific lines to add:
 - **CED**: "brown knit sweater, baggy beige trousers, brown lace-up boots, short brown hair, stubble."
 - **KROS**: "**without the cape**: black ruffled shirt, black brocade vest with gold watch chain and
   gold brooch, silver pendant, black jeans, tall black boots, grey curly hair, goatee."
+
+Name feet **"front foot" / "back foot"**, never left/right (facing right, the front foot is
+the character's left: "right foot" confuses everyone).
+
+**Walks** (`walk_f`, `walk_b`, ← →, no button): one sheet for both. Ask for a natural
+weight-first step, 5 poses: 1) stance, 2) weight on the front foot, back foot lifted,
+3) back foot planted under the back shoulder, feet close, weight on it, 4) front foot lifted,
+5) front foot reaching forward, touching down. `walk_f` plays 1-5, `walk_b` the same backwards.
+Walks loop on the clock (one frame per step, durations ignored); line the poses up by the head,
+since the guard doesn't move (see the walk part of `build_ced.lua`).
 
 For crouching moves add "crouched low, about two-thirds of standing height"; for jumping moves
 "in the air, knees tucked", and keep pose 1 as the standing stance (for the scale).
@@ -168,7 +178,7 @@ C:/Godot/Godot_v4.7.2-stable_win64.exe --headless --path . --import
 C:/Godot/Godot_v4.7.2-stable_win64.exe --path . --script res://tests/move_shot.gd -- --char=ced --move=st_hk --boxes --out=D:/Games/ArcadeFighter/build/shots/st_hk
 ```
 
-(`--char=kros --vs=ced` for KROS.) It walks up to the opponent, does the move, saves a screenshot
+(`--char=kros --vs=ced` for KROS; `--move=walk_f` / `walk_b` walks 48 frames instead.) It walks up to the opponent, does the move, saves a screenshot
 every 2 frames and a contact sheet `<char>_<move>_sheet.png`. Hurt boxes are drawn blue and the
 active hit box red. Check:
 
