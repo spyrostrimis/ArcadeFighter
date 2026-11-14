@@ -53,7 +53,8 @@ static func _ced() -> Dictionary:
 			"cr_hp": _mv(6, 5, 20, 95, 22, 16, [2, 36, 23, 46], G.MID, {"kd": true}),
 			"cr_lk": _mv(5, 3, 6, 25, 12, 10, [8, 0, 26, 8], G.LOW),
 			"cr_mk": _mv(6, 3, 10, 55, 16, 13, [8, 0, 34, 10], G.LOW),
-			"cr_hk": _mv(8, 3, 22, 90, 22, 16, [8, 0, 58, 10], G.LOW, {"kd": true}),
+			# Sweep: 2 px shorter than the sprite foot, so it does not outrange everything Kros has.
+			"cr_hk": _mv(9, 3, 23, 90, 22, 16, [8, 0, 56, 10], G.LOW, {"kd": true}),
 			"j_lp": _mv(4, 8, 0, 35, 16, 12, [5, 29, 21, 15], G.HIGH),
 			"j_mp": _mv(5, 6, 0, 65, 19, 15, [5, 24, 24, 16], G.HIGH),
 			"j_hp": _mv(7, 5, 0, 100, 23, 17, [5, 18, 28, 21], G.HIGH),
@@ -88,10 +89,11 @@ static func _kros() -> Dictionary:
 			# Longer reach (claws, long legs), a little slower than Ced.
 			"st_lp": _mv(4, 3, 5, 30, 13, 10, [11, 65, 28, 11]),
 			"st_mp": _mv(6, 3, 9, 60, 17, 14, [12, 62, 34, 14]),
-			"st_hp": _mv(8, 4, 16, 105, 22, 17, [14, 53, 37, 23]),
+			# Heavies reach down to y 48 so they hit a crouching Ced (crouch hurtbox is 50 tall).
+			"st_hp": _mv(8, 4, 16, 105, 22, 17, [14, 48, 37, 28]),
 			"st_lk": _mv(5, 3, 7, 35, 13, 10, [9, 18, 32, 12]),
 			"st_mk": _mv(7, 4, 11, 65, 17, 14, [11, 41, 39, 14]),
-			"st_hk": _mv(10, 5, 17, 115, 22, 17, [11, 62, 41, 19], G.MID, {"step": [3, 10, 180]}),
+			"st_hk": _mv(10, 5, 17, 115, 22, 17, [11, 48, 41, 33], G.MID, {"step": [3, 10, 180]}),
 			"cr_lp": _mv(5, 2, 5, 25, 12, 10, [11, 37, 26, 9]),
 			"cr_mp": _mv(6, 3, 9, 55, 16, 13, [11, 34, 34, 12]),
 			"cr_hp": _mv(7, 5, 21, 95, 22, 16, [4, 41, 28, 51], G.MID, {"kd": true}),

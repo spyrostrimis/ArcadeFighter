@@ -177,7 +177,9 @@ active hit box red. Check:
   (only the box: startup/active/recovery are balance, ask before changing them),
 - the feet stay planted (no sliding/jumping between poses) and the height matches the idle.
 
-Then run the sim and netplay tests (both must print `RESULT: PASS`):
+Then run the sim, netplay and balance tests (all must print `RESULT: PASS`). A wider box changes
+balance: CED's sprite-sized sweep once made him win 95% of CPU matches. If balance_test fails,
+shorten the box a little (a few px under the sprite tip is fine) and tell the user.
 
 ```bash
 C:/Godot/Godot_v4.7.2-stable_win64.exe --headless --path . --script res://tests/simtest.gd
@@ -185,6 +187,10 @@ C:/Godot/Godot_v4.7.2-stable_win64.exe --headless --path . --script res://tests/
 
 ```bash
 C:/Godot/Godot_v4.7.2-stable_win64.exe --headless --path . --script res://tests/nettest.gd
+```
+
+```bash
+C:/Godot/Godot_v4.7.2-stable_win64.exe --headless --path . --script res://tests/balance_test.gd
 ```
 
 **Send the user** the contact sheet (without `--boxes`) and a GIF of the move (SendUserFile).

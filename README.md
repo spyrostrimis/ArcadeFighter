@@ -43,6 +43,7 @@ addons/webrtc_native/  official godotengine/webrtc-native GDExtension (Windows x
 assets/stages/bedroom.png   stage art (512x216; feet stand on y=200)
 tools/gen_stage.py          regenerates the placeholder stage
 tests/simtest.gd            headless CPU-vs-CPU + rollback determinism test
+tests/balance_test.gd       headless CED vs KROS win rates + damage per move (fails outside 35-65%)
 tests/nettest.gd            headless rollback sync test (latency, jitter, loss, disconnect, desync)
 tests/jitter_test.gd        headless check that fighters don't flicker between poses ("trembling")
 tests/roomprobe.gd          real signalling + WebRTC connection in one process
@@ -59,6 +60,7 @@ Character art: one move at a time from ChatGPT key-pose sheets, see
 C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/simtest.gd
 C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/nettest.gd
 C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/jitter_test.gd
+C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/balance_test.gd
 ```
 
 Debug launch options (after `--`): `--demo` (CPU vs CPU), `--p1=kros --p2=ced`,
