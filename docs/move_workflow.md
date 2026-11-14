@@ -57,7 +57,7 @@ Both face **right** in all art (the game mirrors them).
 | Character | Moves with sprites |
 |---|---|
 | CED | `idle`, `crouch`, `st_hp`, `cr_hk`, `walk_f`, `walk_b`, `flying_knee` (Mixamo, see `docs/character_pipeline.md`) |
-| KROS | `idle`, `st_mk`, `st_hk` (both costumes), `cr_hk` (no cape), `cape` |
+| KROS | `idle`, `st_mk`, `st_hk` (both costumes), `cr_hk`, `walk_f`, `walk_b` (no cape), `cape` |
 
 Update this table when a move is added.
 
@@ -109,7 +109,9 @@ weight-first step, 5 poses: 1) stance, 2) weight on the front foot, back foot li
 3) back foot planted under the back shoulder, feet close, weight on it, 4) front foot lifted,
 5) front foot reaching forward, touching down. `walk_f` plays 1-5, `walk_b` the same backwards.
 Walks loop on the clock (one frame per step, durations ignored); line the poses up by the head,
-since the guard doesn't move (see the walk part of `build_ced.lua`).
+since the guard doesn't move (see the walk part of `build_ced.lua`). A sheet in another step
+order works too: just pick the play order (KROS's 4-pose sheet plays 1 3 4 2, see `build_kros.lua`).
+`move_shot.gd` doesn't create its `--out` folder: `mkdir -p` it first.
 
 For crouching moves add "crouched low, about two-thirds of standing height"; for jumping moves
 "in the air, knees tucked", and keep pose 1 as the standing stance (for the scale).

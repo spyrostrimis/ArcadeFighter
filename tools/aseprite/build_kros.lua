@@ -93,6 +93,38 @@ if prefix == "nocape" and app.fs.isFile(dir .. "/cr_hk_2.png") then
   crA, crB = move({ { drop, 2 }, { sweep, 4 }, { back, 3 }, { stance, 1 } })
 end
 
+-- walk (no-cape only, keys walk_1..4 from art/kros/ref/walk.webp): 1 stance, 2 back foot
+-- under him with the front foot lifting, 3 wide step with the back heel up, 4 back foot
+-- passing. Weight-first order: walk_f plays 1 3 4 2, walk_b the reverse (1 2 4 3).
+-- The guard is the same in every pose, so the poses are lined up by the middle of the head
+-- (top rows) on the idle stance's head: the body glides at the sim's walk speed and the
+-- legs step under it. Looping animations play one frame per step.
+local wfA, wfB, wbA, wbB = nil, nil, nil, nil
+if prefix == "nocape" and app.fs.isFile(dir .. "/walk_1.png") then
+  local function headMid(img)
+    local sum, cnt = 0, 0
+    for y = 0, 11 do
+      for x = 0, img.width - 1 do
+        if app.pixelColor.rgbaA(img:getPixel(x, y)) > 0 then sum = sum + x; cnt = cnt + 1 end
+      end
+    end
+    return cnt > 0 and sum / cnt or 0
+  end
+  local stanceHead = stance.pos.x + headMid(stance.img)
+  local walk = {}
+  for i = 1, 4 do
+    local img = Image{ fromFile = dir .. "/walk_" .. i .. ".png" }
+    walk[i] = { img = img, pos = Point(math.floor(stanceHead - headMid(img) + 0.5), AY - img.height + 1) }
+  end
+  local function cycle(order)
+    local seq = {}
+    for _, i in ipairs(order) do seq[#seq + 1] = { walk[i], 1 } end
+    return move(seq)
+  end
+  wfA, wfB = cycle({ 1, 3, 4, 2 })
+  wbA, wbB = cycle({ 1, 2, 4, 3 })
+end
+
 -- cape on its own (tools/aseprite/cape_cutout.py): blinks and fades away at round start
 local capeFrame = nil
 if app.fs.isFile(dir .. "/" .. prefix .. "_only.png") then
@@ -107,6 +139,10 @@ spr:newTag(1, idleEnd).name = "idle"
 spr:newTag(mkA, mkB).name = "st_mk"
 spr:newTag(hkA, hkB).name = "st_hk"
 if crA then spr:newTag(crA, crB).name = "cr_hk" end
+if wfA then
+  spr:newTag(wfA, wfB).name = "walk_f"
+  spr:newTag(wbA, wbB).name = "walk_b"
+end
 if capeFrame then spr:newTag(n, n).name = "cape" end
 
 -- shared palette, indexed like a real 16-bit sprite
