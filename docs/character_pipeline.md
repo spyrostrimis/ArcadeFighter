@@ -112,3 +112,30 @@ python tools/aseprite/export.py art/ced/ced.aseprite ced
 
 Re-running the import replaces the tag, so it is safe after changing the spec. Frames you retouch
 in Aseprite are overwritten by a re-import: retouch last.
+
+## KROS in Aseprite: two costumes (with and without cape)
+
+Like CED, KROS's moves come from ChatGPT key-pose sheets (figures on flat magenta), one sheet per
+costume with the same three poses (stance, knee chamber, high kick): `art/kros/ref/kicks_cape.webp`
+and `art/kros/ref/kicks_nocape.webp`. The mid kick is made from the high kick by lowering the leg.
+Each costume is its own `.aseprite` file and sprite set: `kros` (cape, the default) and `kros_nocape`
+(`FighterView.setup(..., skin)` picks it). Both have `idle`, `st_mk` and `st_hk`, 110 px tall.
+
+```bash
+python tools/aseprite/rotate_limb.py art/kros/ref/kicks_cape.webp art/kros/ref/kicks_cape_mk.png --fig 1080,0,1960,667 --poly 1550,230,1780,160,1960,130,1960,250,1780,265,1550,365 --pivot 1525,305 --angle 20 --keep 45
+```
+
+```bash
+python tools/aseprite/cutout_keys.py art/kros/ref/kicks_cape_mk.png art/kros/keys/cape 110
+```
+
+```bash
+C:/Aseprite/Aseprite.exe -b --script-param dir=art/kros/keys --script-param prefix=cape --script-param out=art/kros/kros.aseprite --script tools/aseprite/build_kros.lua
+```
+
+```bash
+python tools/aseprite/export.py art/kros/kros.aseprite kros
+```
+
+The same four with `nocape` / `kros_nocape` make the other costume. In-game check:
+`godot --path . --script res://tests/kros_shot.gd -- --out=DIR [--skin=kros_nocape]`.

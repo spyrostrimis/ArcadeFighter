@@ -14,12 +14,14 @@ var sprites: SpriteSet
 var alt_palette := false
 
 
-func setup(p_sim: MatchSim, p_slot: int, alt: bool) -> void:
+## `skin` picks another sprite set for the same fighter (e.g. "kros_nocape": KROS without
+## his cape); "" = the fighter's own (assets/fighters/<cid>).
+func setup(p_sim: MatchSim, p_slot: int, alt: bool, skin := "") -> void:
 	sim = p_sim
 	slot = p_slot
 	alt_palette = alt
 	pal = Puppet.palette(sim.f[slot].cid, alt)
-	sprites = SpriteSet.load_for(sim.f[slot].cid)
+	sprites = SpriteSet.load_for(skin if skin != "" else sim.f[slot].cid)
 
 
 ## Which sprite animation shows this state ("" = none yet, use the placeholder puppet).
