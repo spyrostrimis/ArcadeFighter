@@ -77,6 +77,22 @@ local mkA, mkB = move({ { chamber, 2 }, { mid, 2 }, { chamber, 2 }, { stance, 1 
 -- st_hk (11 startup, 5 active, 23 recovery = 39 game frames ~ 10 steps); the kick shows from game frame 8
 local hkA, hkB = move({ { chamber, 2 }, { high, 4 }, { chamber, 2 }, { stance, 2 } })
 
+-- cr_hk (no-cape only): drops onto his back knee with a hand on the floor and kicks the
+-- ankles (keys cr_hk_2..4 from art/kros/ref/cr_hk.webp). Anchored by the knee on the floor,
+-- KNEE_DX px behind the stance's feet anchor, so the knee stays put and the hand slides back.
+-- 10 + 4 + 25 = 39 game frames ~ 10 steps; the sweep shows from game frame 8.
+local crA, crB = nil, nil
+if prefix == "nocape" and app.fs.isFile(dir .. "/cr_hk_2.png") then
+  local KNEE_DX = -16
+  local function loadKnee(name, kneeX)
+    local img = Image{ fromFile = dir .. "/" .. name .. ".png" }
+    return { img = img, pos = Point(AX + KNEE_DX - kneeX, AY - img.height + 1) }
+  end
+  -- kneeX: middle of the kneeling knee on the floor in each cut-out
+  local drop, sweep, back = loadKnee("cr_hk_2", 34), loadKnee("cr_hk_3", 43), loadKnee("cr_hk_4", 34)
+  crA, crB = move({ { drop, 2 }, { sweep, 4 }, { back, 3 }, { stance, 1 } })
+end
+
 -- cape on its own (tools/aseprite/cape_cutout.py): blinks and fades away at round start
 local capeFrame = nil
 if app.fs.isFile(dir .. "/" .. prefix .. "_only.png") then
@@ -90,6 +106,7 @@ end
 spr:newTag(1, idleEnd).name = "idle"
 spr:newTag(mkA, mkB).name = "st_mk"
 spr:newTag(hkA, hkB).name = "st_hk"
+if crA then spr:newTag(crA, crB).name = "cr_hk" end
 if capeFrame then spr:newTag(n, n).name = "cape" end
 
 -- shared palette, indexed like a real 16-bit sprite

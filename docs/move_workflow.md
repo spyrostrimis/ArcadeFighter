@@ -57,7 +57,7 @@ Both face **right** in all art (the game mirrors them).
 | Character | Moves with sprites |
 |---|---|
 | CED | `idle`, `crouch`, `st_hp`, `cr_hk`, `flying_knee` (Mixamo, see `docs/character_pipeline.md`) |
-| KROS | `idle`, `st_mk`, `st_hk` (both costumes), `cape` |
+| KROS | `idle`, `st_mk`, `st_hk` (both costumes), `cr_hk` (no cape), `cape` |
 
 Update this table when a move is added.
 
