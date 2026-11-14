@@ -5,7 +5,7 @@ extends Node2D
 signal finished(action: String)
 
 const ITEMS := ["VS CPU", "2 PLAYERS", "ONLINE", "CPU LEVEL", "QUIT"]
-const ENABLED := [true, false, true, true, true]
+const ENABLED := [true, true, true, true, true]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
 
 var cursor := 0
@@ -46,6 +46,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		match ITEMS[cursor]:
 			"VS CPU":
 				Sfx.play("confirm")
+				Game.p2_cpu = true
+				finished.emit("select")
+			"2 PLAYERS":
+				Sfx.play("confirm")
+				Game.p2_cpu = false
 				finished.emit("select")
 			"ONLINE":
 				Sfx.play("confirm")
@@ -91,4 +96,7 @@ func _draw() -> void:
 		PixelFont.draw_centered(self, label, 194, y + i * 14, 1, col, Hud.DARK, 0, true)
 	if not ENABLED[cursor]:
 		PixelFont.draw_centered(self, "COMING SOON", 192, y + ITEMS.size() * 14 + 6, 1, Color("ff8060"), Hud.DARK)
-	PixelFont.draw(self, "ARROWS MOVE  A S D PUNCH  Z X C KICK", Vector2(4, 207), 1, Color("a0a0c0"), Hud.DARK)
+	var keys := "ARROWS MOVE  A S D PUNCH  Z X C KICK"
+	if ITEMS[cursor] == "2 PLAYERS":
+		keys = "2P: IJKL MOVE  NUM 4 5 6 PUNCH  NUM 1 2 3 KICK"
+	PixelFont.draw(self, keys, Vector2(4, 207), 1, Color("a0a0c0"), Hud.DARK)

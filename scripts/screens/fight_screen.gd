@@ -308,6 +308,8 @@ func _event(e: Dictionary) -> void:
 		"match_over":
 			var w: int = e["w"]
 			var human := 0 if cpus[0] == null else (1 if cpus[1] == null else -1)
+			if cpus[0] == null and cpus[1] == null:
+				human = -1   # local 2 players: someone always wins
 			if online:
 				human = me
 			if human >= 0 and w != human:

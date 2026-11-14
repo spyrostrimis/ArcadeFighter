@@ -1,6 +1,7 @@
 class_name SelectScreen
 extends Node2D
 ## Character select: player picks a fighter, then picks the CPU opponent.
+## 2 players (Game.p2_cpu false): both pick at the same time, each with their own cursor.
 ## Online: each player moves their own cursor (shown live on both screens);
 ## when both have picked, the host sends "start" and both go to the VS splash.
 
@@ -12,6 +13,7 @@ var t := 0
 var vs_t := 0
 var pals := {}
 var online := false
+var local2 := false   # local 2 players
 var me := 0
 var picked := [false, false]
 var _auto_t := -1
@@ -23,6 +25,7 @@ func _ready() -> void:
 		pals[c + "_alt"] = Puppet.palette(c, true)
 	cursor[0] = Game.CHARACTERS.find(Game.p1_char)
 	cursor[1] = Game.CHARACTERS.find(Game.p2_char)
+	local2 = not online and not Game.p2_cpu
 	if online:
 		me = Net.local_slot
 		stage = 0
@@ -92,6 +95,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if online:
 		_online_input(event)
 		return
+	if local2:
+		_local2_input(event)
+		return
 	var n := Game.CHARACTERS.size()
 	if event.is_action_pressed("p1_left"):
 		cursor[stage] = (cursor[stage] + n - 1) % n
@@ -113,6 +119,41 @@ func _unhandled_input(event: InputEvent) -> void:
 		Sfx.play("back")
 		if stage == 1:
 			stage = 0
+		else:
+			finished.emit("title")
+
+
+func _local2_input(event: InputEvent) -> void:
+	var n := Game.CHARACTERS.size()
+	for s in 2:
+		var p := "p%d_" % (s + 1)
+		if not picked[s] and (event.is_action_pressed(p + "left") or event.is_action_pressed(p + "right")):
+			var d := -1 if event.is_action_pressed(p + "left") else 1
+			cursor[s] = (cursor[s] + n + d) % n
+			Sfx.play("select")
+			return
+		var ok := event.is_action_pressed(p + "lp") or event.is_action_pressed(p + "lk")
+		if s == 0:
+			ok = ok or event.is_action_pressed("menu_ok")
+		if not picked[s] and ok:
+			picked[s] = true
+			Sfx.play("confirm")
+			if picked[0] and picked[1]:
+				Game.p1_char = Game.CHARACTERS[cursor[0]]
+				Game.p2_char = Game.CHARACTERS[cursor[1]]
+				Game.p1_cpu = false
+				Game.p2_cpu = false
+				stage = 2
+				vs_t = 0
+			return
+		if picked[s] and (event.is_action_pressed(p + "mp") or event.is_action_pressed(p + "mk")):
+			picked[s] = false
+			Sfx.play("back")
+			return
+	if event.is_action_pressed("menu_back"):
+		Sfx.play("back")
+		if picked[0] or picked[1]:
+			picked = [false, false]
 		else:
 			finished.emit("title")
 
@@ -159,10 +200,15 @@ func _draw() -> void:
 	var title := "SELECT YOUR FIGHTER" if stage == 0 else "SELECT OPPONENT"
 	if online and picked[me]:
 		title = "WAITING FOR OPPONENT"
+	elif local2:
+		title = "SELECT YOUR FIGHTERS"
 	PixelFont.draw_centered(self, title, 192, 8, 2, Hud.ROUND_GRAD, Hud.DARK, 1, true, 1)
 	var tags := ["1P", "CPU"]
 	if online:
 		tags = ["YOU" if me == 0 else "1P", "YOU" if me == 1 else "2P"]
+	elif local2:
+		tags = ["1P", "2P"]
+	var both := online or local2   # both cursors move at the same time
 	# full-body previews
 	var c0: String = Game.CHARACTERS[cursor[0]]
 	draw_set_transform(Vector2(66, 196), 0.0, Vector2(1, 1))
@@ -170,16 +216,16 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	PixelFont.draw_centered(self, String(CharData.get_data(c0)["name"]), 66, 48, 1, Hud.NAME_GRAD, Hud.DARK, 0, true)
 	PixelFont.draw_centered(self, tags[0], 66, 30, 2, [Color("ff9070"), Color("e83818")], Hud.DARK, 0, true)
-	if online and picked[0]:
+	if both and picked[0]:
 		PixelFont.draw_centered(self, "READY", 66, 60, 1, Hud.FIGHT_GRAD, Hud.DARK, 0, true)
-	if stage == 1 or online:
+	if stage == 1 or both:
 		var c1: String = Game.CHARACTERS[cursor[1]]
 		draw_set_transform(Vector2(318, 196), 0.0, Vector2(-1, 1))
 		Puppet.draw(self, c1, _pal(1), Poses.idle(c1, t + 20), sin(t * 0.07) * 2.0)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		PixelFont.draw_centered(self, String(CharData.get_data(c1)["name"]), 318, 48, 1, Hud.NAME_GRAD, Hud.DARK, 0, true)
 		PixelFont.draw_centered(self, tags[1], 318, 30, 2, [Color("a0d0ff"), Color("3068e0")], Hud.DARK, 0, true)
-		if online and picked[1]:
+		if both and picked[1]:
 			PixelFont.draw_centered(self, "READY", 318, 60, 1, Hud.FIGHT_GRAD, Hud.DARK, 0, true)
 	# portrait cards
 	for i in Game.CHARACTERS.size():
@@ -196,16 +242,18 @@ func _draw() -> void:
 		PixelFont.draw_centered(self, String(CharData.get_data(c)["name"]), x0 + 32, y0 + 64, 1, Hud.NAME_GRAD, null, 0, true)
 		# cursors
 		var blink := (t / 8) % 2 == 0
-		var show0: bool = (stage == 0 and blink or stage == 1) if not online else (blink or picked[0])
-		var show1: bool = (stage == 1 and blink) if not online else (blink or picked[1])
+		var show0: bool = (stage == 0 and blink or stage == 1) if not both else (blink or picked[0])
+		var show1: bool = (stage == 1 and blink) if not both else (blink or picked[1])
 		if cursor[0] == i and show0:
 			draw_rect(Rect2(x0 - 3, y0 - 3, 70, 80), Color("ff3020"), false, 2.0)
 			PixelFont.draw(self, tags[0], Vector2(x0 - 2, y0 - 12), 1, [Color("ff9070"), Color("e83818")], Hud.DARK, 0, true)
-		if (stage == 1 or online) and cursor[1] == i and show1:
+		if (stage == 1 or both) and cursor[1] == i and show1:
 			draw_rect(Rect2(x0 - 5, y0 - 5, 74, 84), Color("40a0ff"), false, 2.0)
 			var tw := PixelFont.width(tags[1], 1, true)
 			PixelFont.draw(self, tags[1], Vector2(x0 + 66 - tw, y0 - 12), 1, [Color("a0d0ff"), Color("3068e0")], Hud.DARK, 0, true)
 	var help := "LEFT/RIGHT CHOOSE   ENTER OR A CONFIRM   ESC BACK"
+	if local2:
+		help = "1P ARROWS + A    2P IJKL + NUM 4    ESC BACK"
 	if online:
 		help = "ESC CANCEL PICK" if picked[me] else "LEFT/RIGHT CHOOSE   ENTER OR A CONFIRM   ESC LEAVE ROOM"
 		if Net.room != null:

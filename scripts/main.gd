@@ -57,7 +57,7 @@ func _fight(demo: bool) -> void:
 	if demo and not Game.opt.has("p1"):
 		c1 = chars[randi() % chars.size()]
 		c2 = chars[randi() % chars.size()]
-	fs.setup(c1, c2, demo, true, Game.cpu_level, randi())
+	fs.setup(c1, c2, demo, demo or Game.p2_cpu, Game.cpu_level, randi())
 	_goto(fs)
 
 

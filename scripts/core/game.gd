@@ -6,7 +6,7 @@ const CHARACTERS := ["ced", "kros"]
 var p1_char := "ced"
 var p2_char := "kros"
 var p1_cpu := false
-var p2_cpu := true
+var p2_cpu := true   # false = local 2 players
 var cpu_level := 1  # 0 easy, 1 normal, 2 hard
 var hi_score := 100000
 
@@ -80,6 +80,17 @@ func _setup_input() -> void:
 	_key("p1_lk", KEY_Z)
 	_key("p1_mk", KEY_X)
 	_key("p1_hk", KEY_C)
+	# Player 2 keyboard: IJKL + numpad 4 5 6 (punches) / 1 2 3 (kicks)
+	_key("p2_up", KEY_I)
+	_key("p2_down", KEY_K)
+	_key("p2_left", KEY_J)
+	_key("p2_right", KEY_L)
+	_key("p2_lp", KEY_KP_4)
+	_key("p2_mp", KEY_KP_5)
+	_key("p2_hp", KEY_KP_6)
+	_key("p2_lk", KEY_KP_1)
+	_key("p2_mk", KEY_KP_2)
+	_key("p2_hk", KEY_KP_3)
 	# Gamepads (device 0 -> P1, device 1 -> P2), 6-button layout: X Y RB / A B RT
 	for d in 2:
 		var p := "p%d" % (d + 1)
@@ -114,6 +125,7 @@ func _setup_input() -> void:
 	_key("menu_pause", KEY_ESCAPE)
 	_key("menu_pause", KEY_P)
 	_pad_button("menu_pause", 0, JOY_BUTTON_START)
+	_pad_button("menu_pause", 1, JOY_BUTTON_START)
 	_add("toggle_fullscreen")
 	_key("toggle_fullscreen", KEY_F11)
 	_add("toggle_boxes")

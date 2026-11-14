@@ -6,16 +6,18 @@ Retro 16-bit pixel-art fighting game in Godot 4.7: **CED vs KROS** in the bedroo
 
 - Double-click `play.bat`, or open `project.godot` in Godot and press F5.
 - Menu: **VS CPU** → pick your fighter → pick the CPU opponent (mirror matches are allowed).
+- **2 PLAYERS** → both players pick at the same time with their own keys (LP/LK confirm,
+  MP/MK cancel your pick, ESC back). A second gamepad is player 2.
 - **ONLINE** → HOST ROOM shows a 6-letter code; your opponent picks JOIN ROOM and types it.
   No IP or port forwarding needed; rollback netcode. Details: [docs/online.md](docs/online.md).
   Builds must ship `libwebrtc_native.windows.template_release.x86_64.dll` next to the .exe.
 
-| Action | Keys | Gamepad |
-|---|---|---|
-| Move / jump / crouch | Arrow keys | D-pad / left stick |
-| Block | Hold away from the opponent (hold down-back for low attacks) | |
-| Light / Medium / Heavy punch | A / S / D | X / Y / RB |
-| Light / Medium / Heavy kick | Z / X / C | A / B / RT |
+| Action | P1 keys | P2 keys | Gamepad |
+|---|---|---|---|
+| Move / jump / crouch | Arrow keys | I J K L | D-pad / left stick |
+| Block | Hold away from the opponent (hold down-back for low attacks) | | |
+| Light / Medium / Heavy punch | A / S / D | Numpad 4 / 5 / 6 | X / Y / RB |
+| Light / Medium / Heavy kick | Z / X / C | Numpad 1 / 2 / 3 | A / B / RT |
 | Pause | Esc or P (Q to quit while paused) | Start |
 | Show hitboxes | F2 | |
 | Fullscreen | F11 | |
@@ -45,6 +47,7 @@ tools/gen_stage.py          regenerates the placeholder stage
 tests/simtest.gd            headless CPU-vs-CPU + rollback determinism test
 tests/balance_test.gd       headless CED vs KROS win rates + damage per move (fails outside 35-65%)
 tests/nettest.gd            headless rollback sync test (latency, jitter, loss, disconnect, desync)
+tests/local2_test.gd        headless local 2 players: title -> both pick -> P2 keys drive fighter 2
 tests/jitter_test.gd        headless check that fighters don't flicker between poses ("trembling")
 tests/roomprobe.gd          real signalling + WebRTC connection in one process
 tests/online_pair.sh        two game windows host/join a room and play online matches
@@ -61,6 +64,7 @@ C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res:
 C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/nettest.gd
 C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/jitter_test.gd
 C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/balance_test.gd
+C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/local2_test.gd
 ```
 
 Debug launch options (after `--`): `--demo` (CPU vs CPU), `--p1=kros --p2=ced`,
@@ -69,5 +73,4 @@ Debug launch options (after `--`): `--demo` (CPU vs CPU), `--p1=kros --p2=ced`,
 ## Next steps
 
 - Real sprite art, move by move ([docs/move_workflow.md](docs/move_workflow.md)). Moves without sprites still use the procedural puppet.
-- Local 2 players: P2 input actions already exist. It needs P2 keyboard keys and a select screen for two players.
 - Online: add a TURN relay for players behind symmetric NAT (see docs/online.md, Limits).

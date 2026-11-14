@@ -222,6 +222,8 @@ func _banner() -> void:
 				txt2 = "DRAW GAME"
 			elif online_local >= 0:
 				txt2 = "YOU WIN!" if mw == online_local else "YOU LOSE"
+			elif not demo and not cpu_side[0] and not cpu_side[1]:
+				txt2 = "%dP WINS" % (mw + 1)
 			elif demo or (cpu_side[0] == cpu_side[1]):
 				txt2 = String(sim.f[mw].data["name"]) + " WINS"
 			else:
