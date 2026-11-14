@@ -12,6 +12,13 @@ var t := 0.0
 
 var sprites: SpriteSet
 var alt_palette := false
+## Bison-style cape: the fighter starts each round in `cape_sprites` and throws the cape
+## off during the round intro, then fights in `sprites`. Purely visual, read from the sim's
+## phase/frame counter, so it replays the same under rollback.
+var cape_sprites: SpriteSet = null
+const CAPED := {"kros": "kros_nocape"}   # fighter id -> its sprite set once the cape is off
+const TOSS_AT := 40     # intro frame the cape comes off ("ROUND n" is on screen 8-70)
+const CAPE_PIVOT := Vector2(0, -60)
 
 
 ## `skin` picks another sprite set for the same fighter (e.g. "kros_nocape": KROS without
@@ -21,7 +28,35 @@ func setup(p_sim: MatchSim, p_slot: int, alt: bool, skin := "") -> void:
 	slot = p_slot
 	alt_palette = alt
 	pal = Puppet.palette(sim.f[slot].cid, alt)
-	sprites = SpriteSet.load_for(skin if skin != "" else sim.f[slot].cid)
+	var cid := sim.f[slot].cid
+	sprites = SpriteSet.load_for(skin if skin != "" else cid)
+	if skin == "" and CAPED.has(cid):
+		var off := SpriteSet.load_for(CAPED[cid])
+		if off != null and sprites != null and sprites.has("cape_toss"):
+			cape_sprites = sprites
+			sprites = off
+
+
+## The sprite set to draw now: still wearing the cape during the round intro before the toss.
+func _sprites_now() -> SpriteSet:
+	if cape_sprites != null and sim.phase == MatchSim.INTRO and sim.pf < TOSS_AT:
+		return cape_sprites
+	return sprites
+
+
+## The thrown cape: flies up and back, flapping and turning, until it leaves the screen.
+func _draw_flying_cape(base: Vector2, facing: int) -> void:
+	if cape_sprites == null or sim.phase != MatchSim.INTRO or sim.pf < TOSS_AT:
+		return
+	var t := float(sim.pf - TOSS_AT)
+	var off := Vector2(-1.4 * t - 0.01 * t * t, -3.2 * t - 0.03 * t * t)
+	var flap := 1.0 - 0.35 * absf(sin(t * 0.16))
+	var xf := Transform2D(0.0, Vector2(facing, 1), 0.0, base)
+	xf *= Transform2D(-0.025 * t, Vector2(flap, 1), 0.0, off + CAPE_PIVOT)
+	xf *= Transform2D(0.0, -CAPE_PIVOT)
+	draw_set_transform_matrix(xf)
+	cape_sprites.draw_frame(self, "cape_toss", 0)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## Which sprite animation shows this state ("" = none yet, use the placeholder puppet).
@@ -57,16 +92,16 @@ func _sprite_anim(fi: Fighter) -> String:
 			want = "win"
 		Fighter.LOSE:
 			want = "lose"
-	return want if sprites.has(want) else ""
+	return want if _sprites_now().has(want) else ""
 
 
 ## Looping animations run on the clock; moves are synced to their frame data.
 func _sprite_index(fi: Fighter, anim: String) -> int:
-	var n := sprites.frame_count(anim)
+	var n := _sprites_now().frame_count(anim)
 	if fi.state == Fighter.ATTACK:
 		return clampi(fi.sf * n / fi.move_length(), 0, n - 1)
 	var clock := sim.frame + slot * 23
-	return int(clock * sprites.fps / 60.0) % n
+	return int(clock * _sprites_now().fps / 60.0) % n
 
 
 func _process(_delta: float) -> void:
@@ -84,12 +119,14 @@ func _draw() -> void:
 	var h := fi.y / 100.0
 	var sw := maxf(10.0, 26.0 - h * 0.12)
 	_ellipse(Vector2(base.x, FLOOR_Y - 1), sw, 3.5, Color(0, 0, 0, 0.35))
+	if not alt_palette:
+		_draw_flying_cape(base, fi.facing)
 	draw_set_transform(base, 0.0, Vector2(fi.facing, 1))
 	z_index = 1 if fi.state == Fighter.ATTACK else 0
 	if sprites != null and not alt_palette:
 		var anim := _sprite_anim(fi)
 		if anim != "":
-			sprites.draw_frame(self, anim, _sprite_index(fi, anim))
+			_sprites_now().draw_frame(self, anim, _sprite_index(fi, anim))
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			return
 	var pose := Poses.for_fighter(fi, t)

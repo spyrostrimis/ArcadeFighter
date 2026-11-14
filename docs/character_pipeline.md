@@ -118,8 +118,13 @@ in Aseprite are overwritten by a re-import: retouch last.
 Like CED, KROS's moves come from ChatGPT key-pose sheets (figures on flat magenta), one sheet per
 costume with the same three poses (stance, knee chamber, high kick): `art/kros/ref/kicks_cape.webp`
 and `art/kros/ref/kicks_nocape.webp`. The mid kick is made from the high kick by lowering the leg.
-Each costume is its own `.aseprite` file and sprite set: `kros` (cape, the default) and `kros_nocape`
-(`FighterView.setup(..., skin)` picks it). Both have `idle`, `st_mk` and `st_hk`, 110 px tall.
+Each costume is its own `.aseprite` file and sprite set: `kros` (cape) and `kros_nocape`. Both have
+`idle`, `st_mk` and `st_hk`, 110 px tall. In a match KROS wears the cape at the start of each round
+and throws it off during the "ROUND n" banner (`FighterView`, `CAPED` / `TOSS_AT`), then fights in
+`kros_nocape`. The flying cape is the `cape_toss` tag of `kros.aseprite`, cut out by
+`tools/aseprite/cape_cutout.py` (`art/kros/keys/cape_1.png art/kros/keys/nocape_1.png art/kros/keys/cape_only.png`)
+before `build_kros.lua` runs. After re-exporting a sheet, run `godot --headless --path . --import`
+so the game picks up the new texture.
 
 ```bash
 python tools/aseprite/rotate_limb.py art/kros/ref/kicks_cape.webp art/kros/ref/kicks_cape_mk.png --fig 1080,0,1960,667 --poly 1550,230,1780,160,1960,130,1960,250,1780,265,1550,365 --pivot 1525,305 --angle 20 --keep 45
@@ -138,4 +143,4 @@ python tools/aseprite/export.py art/kros/kros.aseprite kros
 ```
 
 The same four with `nocape` / `kros_nocape` make the other costume. In-game check:
-`godot --path . --script res://tests/kros_shot.gd -- --out=DIR [--skin=kros_nocape]`.
+`godot --path . --script res://tests/kros_shot.gd -- --out=DIR [--skin=kros]` (a skin forces one costume, no toss).

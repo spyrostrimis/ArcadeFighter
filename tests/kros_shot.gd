@@ -1,7 +1,9 @@
 extends SceneTree
-## Visual check of KROS's sprites: CED stands idle, KROS (P2) walks in and does st_mk,
-## then st_hk. Saves a screenshot of the idle and every 2 frames of each move. Run (not headless):
-## godot --path . --script res://tests/kros_shot.gd -- --out=DIR [--skin=kros_nocape]
+## Visual check of KROS's sprites: the round intro (he throws off his cape), then KROS (P2)
+## walks in and does st_mk, then st_hk, on an idle CED. Saves a screenshot every 4 frames of
+## the intro and every 2 frames of each move. --skin=kros / kros_nocape forces one costume
+## (no toss). Run (not headless):
+## godot --path . --script res://tests/kros_shot.gd -- --out=DIR [--skin=kros]
 
 var sim: MatchSim
 var world: Node2D
@@ -53,8 +55,8 @@ func _process(_d: float) -> bool:
 		pending = ""
 	sim.step(0, _input_p2())
 	world.position = Vector2(-sim.cam_x, 0)
-	if sim.frame == 40:   # round intro, both standing in idle
-		pending = "%s/%s_idle.png" % [out, tag]
+	if sim.phase == MatchSim.INTRO and sim.pf % 4 == 0:   # round intro (cape toss)
+		pending = "%s/%s_intro_%03d.png" % [out, tag, sim.pf]
 	if t0 >= 0:
 		var k := sim.frame - t0
 		if k > 100:
