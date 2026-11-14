@@ -8,6 +8,10 @@ Retro 16-bit pixel-art fighting game in Godot 4.7: **CED vs KROS** in the bedroo
 - Menu: **VS CPU** → pick your fighter → pick the CPU opponent (mirror matches are allowed).
 - **2 PLAYERS** → both players pick at the same time with their own keys (LP/LK confirm,
   MP/MK cancel your pick, ESC back). A second gamepad is player 2.
+- **SETTINGS** → volumes (master/music/sound), keyboard keys for P1 and P2, rounds, round
+  time, CPU level, fullscreen and window size, plus development helpers: FPS counter,
+  hitboxes, input history, training health (no KO) and a CPU dummy (stand/crouch/jump/block).
+  Saved to `user://settings.cfg`. Online matches always use the default rules.
 - **ONLINE** → HOST ROOM shows a 6-letter code; your opponent picks JOIN ROOM and types it.
   No IP or port forwarding needed; rollback netcode. Details: [docs/online.md](docs/online.md).
   Builds must ship `libwebrtc_native.windows.template_release.x86_64.dll` next to the .exe.
@@ -18,9 +22,9 @@ Retro 16-bit pixel-art fighting game in Godot 4.7: **CED vs KROS** in the bedroo
 | Block | Hold away from the opponent (hold down-back for low attacks) | | |
 | Light / Medium / Heavy punch | A / S / D | Numpad 4 / 5 / 6 | X / Y / RB |
 | Light / Medium / Heavy kick | Z / X / C | Numpad 1 / 2 / 3 | A / B / RT |
-| Pause | Esc or P (Q to quit while paused) | Start |
-| Show hitboxes | F2 | |
-| Fullscreen | F11 | |
+| Pause | Esc or P (Q to quit while paused) | | Start |
+| Show hitboxes / input history | F2 / F3 | | |
+| Fullscreen | F11 | | |
 
 Rules: best of 3 rounds, 99-second timer. Light attacks chain into each other.
 Crouching heavy punch is an anti-air uppercut, and crouching heavy kick is a sweep.
@@ -39,7 +43,8 @@ scripts/sim/      deterministic game logic (integer math), no rendering
   inp.gd          input bitmask (same format for keyboard, CPU and future netplay)
 scripts/ai/cpu.gd CPU opponent (Easy/Normal/Hard on the title screen)
 scripts/render/   placeholder art: puppet.gd/poses.gd draw the characters, hud.gd, effects.gd
-scripts/screens/  title, character select, fight, online menu
+scripts/screens/  title, character select, settings, fight, online menu
+scripts/core/     game.gd (input map), settings.gd (saved options), sfx.gd, music.gd (procedural chiptune)
 scripts/net/      online: MQTT signalling, WebRTC room (net_room.gd), rollback.gd, Net autoload
 addons/webrtc_native/  official godotengine/webrtc-native GDExtension (Windows x86_64)
 assets/stages/bedroom.png   stage art (512x216; feet stand on y=200)
@@ -47,6 +52,7 @@ tools/gen_stage.py          regenerates the placeholder stage
 tests/simtest.gd            headless CPU-vs-CPU + rollback determinism test
 tests/balance_test.gd       headless CED vs KROS win rates + damage per move (fails outside 35-65%)
 tests/nettest.gd            headless rollback sync test (latency, jitter, loss, disconnect, desync)
+tests/settings_test.gd      headless settings screen: volume, key rebinding/swap, save + load, match rules
 tests/local2_test.gd        headless local 2 players: title -> both pick -> P2 keys drive fighter 2
 tests/jitter_test.gd        headless check that fighters don't flicker between poses ("trembling")
 tests/roomprobe.gd          real signalling + WebRTC connection in one process
@@ -65,10 +71,11 @@ C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res:
 C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/jitter_test.gd
 C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/balance_test.gd
 C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/local2_test.gd
+C:/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/settings_test.gd
 ```
 
 Debug launch options (after `--`): `--demo` (CPU vs CPU), `--p1=kros --p2=ced`,
-`--screen=select|fight`, `--shot=<prefix> --shot_at=60,300` (save screenshots, then quit).
+`--screen=select|fight|settings`, `--set=input_display:1,dummy:4` (settings for this run only), `--shot=<prefix> --shot_at=60,300` (save screenshots, then quit).
 
 ## Next steps
 

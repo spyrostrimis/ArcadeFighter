@@ -19,6 +19,10 @@ var paused := false
 var _shake := 0
 var _flash := 0
 var _hi_saved := false
+# development helpers (Settings): input history per player, CPU dummy
+const HIST_LEN := 14
+var show_inputs := false
+var hist: Array = [[], []]   # per slot: [[input, frames held], ...] newest first
 
 # online
 const POST_ITEMS := ["REMATCH", "CHANGE FIGHTER", "LEAVE ROOM"]
@@ -35,8 +39,9 @@ var esc_t := 0
 var _done_t := -1
 
 
-func setup(c1: String, c2: String, cpu1: bool, cpu2: bool, level: int, seed_value: int) -> void:
-	sim = MatchSim.new(c1, c2)
+## opts: match rules for MatchSim (rounds, time, training); {} = arcade defaults.
+func setup(c1: String, c2: String, cpu1: bool, cpu2: bool, level: int, seed_value: int, opts := {}) -> void:
+	sim = MatchSim.new(c1, c2, opts)
 	demo = cpu1 and cpu2
 	if cpu1:
 		cpus[0] = CpuBrain.new(0, level, seed_value)
@@ -58,11 +63,13 @@ func setup(c1: String, c2: String, cpu1: bool, cpu2: bool, level: int, seed_valu
 	fx = Effects.new()
 	fx.sim = sim
 	fx.z_index = 5
+	fx.show_boxes = bool(Settings.v["show_boxes"])
 	world.add_child(fx)
 	hud = Hud.new()
 	hud.z_index = 10
 	add_child(hud)
 	hud.setup(sim, [views[0].pal, views[1].pal], [cpu1, cpu2], demo)
+	show_inputs = bool(Settings.v["input_display"])
 	overlay = Node2D.new()
 	overlay.z_index = 20
 	overlay.draw.connect(_draw_overlay)
@@ -191,8 +198,10 @@ func _physics_process(_delta: float) -> void:
 		return
 	if paused or sim == null:
 		return
-	var i0: int = cpus[0].get_input(sim) if cpus[0] != null else Inp.read_local("p1")
-	var i1: int = cpus[1].get_input(sim) if cpus[1] != null else Inp.read_local("p2")
+	var i0: int = _cpu_input(0) if cpus[0] != null else Inp.read_local("p1")
+	var i1: int = _cpu_input(1) if cpus[1] != null else Inp.read_local("p2")
+	_record(0, i0)
+	_record(1, i1)
 	sim.step(i0, i1)
 	_handle_events()
 	fx.tick()
@@ -212,6 +221,56 @@ func _physics_process(_delta: float) -> void:
 			finished.emit("select")
 
 
+## CPU input, or a fixed action when Settings "CPU DUMMY" is set (not in demo play).
+func _cpu_input(slot: int) -> int:
+	var dummy := int(Settings.v["dummy"])
+	if demo or dummy == 0:
+		return cpus[slot].get_input(sim)
+	# block only while the opponent attacks; holding back otherwise walks away
+	var back := Inp.LEFT if sim.f[slot].facing == 1 else Inp.RIGHT
+	var threat := sim.f[1 - slot].state == Fighter.ATTACK
+	match Settings.DUMMY_OPTS[dummy]:
+		"CROUCH": return Inp.DOWN
+		"JUMP": return Inp.UP
+		"BLOCK": return back if threat else 0
+		"LOW BLOCK": return Inp.DOWN | (back if threat else 0)
+	return 0
+
+
+func _record(slot: int, inp: int) -> void:
+	var h: Array = hist[slot]
+	if not h.is_empty() and h[0][0] == inp:
+		h[0][1] = mini(h[0][1] + 1, 99)
+		return
+	h.push_front([inp, 1])
+	if h.size() > HIST_LEN:
+		h.pop_back()
+
+
+## Numpad notation as seen from the fighter (6 = forward), plus button names.
+func _inp_text(slot: int, inp: int) -> String:
+	var fwd := Inp.RIGHT if sim.f[slot].facing == 1 else Inp.LEFT
+	var bwd := Inp.LEFT if fwd == Inp.RIGHT else Inp.RIGHT
+	var col := 1 if inp & bwd else (3 if inp & fwd else 2)
+	var row := 6 if inp & Inp.UP else (0 if inp & Inp.DOWN else 3)
+	var txt := str(row + col)
+	for i in Inp.BUTTONS.size():
+		if inp & Inp.BUTTONS[i]:
+			txt += " " + Inp.BUTTON_NAMES[i]
+	return txt
+
+
+func _draw_inputs() -> void:
+	for slot in 2:
+		var h: Array = hist[slot]
+		for k in h.size():
+			var line := "%2d %s" % [h[k][1], _inp_text(slot, h[k][0])]
+			var y := 58 + k * 9
+			var x := 4 if slot == 0 else 380 - PixelFont.width(line, 1)
+			var c := Color.WHITE if k == 0 else Color(0.75, 0.78, 0.9, 1.0 - k * 0.05)
+			PixelFont.draw(overlay, line, Vector2(x, y), 1, c, Hud.DARK)
+
+
 func _process(_delta: float) -> void:
 	if sim == null:
 		return
@@ -227,6 +286,8 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_boxes"):
 		fx.show_boxes = not fx.show_boxes
+	if event.is_action_pressed("toggle_inputs"):
+		show_inputs = not show_inputs
 	if online:
 		_online_input(event)
 		return
@@ -323,12 +384,15 @@ func _draw_overlay() -> void:
 		overlay.draw_rect(Rect2(0, 0, 384, 216), Color(1, 1, 1, _flash / 8.0))
 	if online:
 		_draw_online()
+	if show_inputs and not online:
+		_draw_inputs()
 	if paused:
 		overlay.draw_rect(Rect2(0, 0, 384, 216), Color(0, 0, 0, 0.6))
 		PixelFont.draw_centered(overlay, "PAUSED", 192, 80, 3, Hud.ROUND_GRAD, Hud.DARK, 1, true, 2)
 		PixelFont.draw_centered(overlay, "ESC  RESUME", 192, 116, 1, Color.WHITE, Hud.DARK)
 		PixelFont.draw_centered(overlay, "Q    QUIT TO TITLE", 192, 128, 1, Color.WHITE, Hud.DARK)
 		PixelFont.draw_centered(overlay, "F2   SHOW HITBOXES", 192, 140, 1, Color("a0a8c0"), Hud.DARK)
+		PixelFont.draw_centered(overlay, "F3   SHOW INPUTS  ", 192, 152, 1, Color("a0a8c0"), Hud.DARK)
 
 
 func _draw_online() -> void:

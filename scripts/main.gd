@@ -1,7 +1,8 @@
 extends Node
 ## Screen manager (title -> select -> fight) plus test hooks:
 ##   -- --demo                 CPU vs CPU fight straight away
-##   -- --screen=title|select  open a screen directly
+##   -- --screen=title|select|settings  open a screen directly
+##   -- --set=input_display:1,training:1   override settings for this run (not saved)
 ##   -- --p1=ced --p2=kros     characters for --demo
 ##   -- --shot=prefix --shot_at=60,300   save screenshots at those frames, then quit
 ## Online test hooks (see docs/online.md):
@@ -30,6 +31,8 @@ func _ready() -> void:
 		_fight(true)
 	elif o.get("screen", "") == "select":
 		_goto(SelectScreen.new())
+	elif o.get("screen", "") == "settings":
+		_goto(SettingsScreen.new())
 	elif o.get("screen", "") == "fight":
 		_fight(false)
 	else:
@@ -41,6 +44,7 @@ func _goto(n: Node) -> void:
 		current.queue_free()
 	current = n
 	add_child(n)
+	Music.play("fight" if n is FightScreen else "title")
 	if n.has_signal("finished"):
 		n.connect("finished", _on_finished)
 
@@ -57,7 +61,7 @@ func _fight(demo: bool) -> void:
 	if demo and not Game.opt.has("p1"):
 		c1 = chars[randi() % chars.size()]
 		c2 = chars[randi() % chars.size()]
-	fs.setup(c1, c2, demo, demo or Game.p2_cpu, Game.cpu_level, randi())
+	fs.setup(c1, c2, demo, demo or Game.p2_cpu, Game.cpu_level, randi(), {} if demo else Settings.match_opts())
 	_goto(fs)
 
 
@@ -94,6 +98,8 @@ func _on_finished(action: String) -> void:
 			_title()
 		"select":
 			_goto(SelectScreen.new())
+		"settings":
+			_goto(SettingsScreen.new())
 		"fight":
 			_fight(false)
 		"demo":

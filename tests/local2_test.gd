@@ -13,6 +13,7 @@ var x0 := 0
 
 
 func _initialize() -> void:
+	root.get_node("Settings").use_defaults("user://test_settings.cfg")
 	main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
 

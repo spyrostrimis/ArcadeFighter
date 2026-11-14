@@ -20,6 +20,8 @@ config/features=PackedStringArray("4.7")
 Game="*res://scripts/core/game.gd"
 Sfx="*res://scripts/core/sfx.gd"
 Net="*res://scripts/net/net.gd"
+Settings="*res://scripts/core/settings.gd"
+Music="*res://scripts/core/music.gd"
 
 [debug]
 

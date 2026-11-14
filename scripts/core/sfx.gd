@@ -13,6 +13,7 @@ func _ready() -> void:
 	for i in 10:
 		var p := AudioStreamPlayer.new()
 		p.volume_db = -6.0
+		p.bus = "SFX"
 		add_child(p)
 		_players.append(p)
 	_build()

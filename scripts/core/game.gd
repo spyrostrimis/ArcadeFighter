@@ -18,6 +18,11 @@ var auto_matches := 0       # --autoplay: matches finished so far
 
 func _ready() -> void:
 	_setup_input()
+	for bus in ["Music", "SFX"]:
+		if AudioServer.get_bus_index(bus) < 0:
+			AudioServer.add_bus()
+			AudioServer.set_bus_name(AudioServer.bus_count - 1, bus)
+			AudioServer.set_bus_send(AudioServer.bus_count - 1, "Master")
 	for a in OS.get_cmdline_user_args():
 		var s: String = a.trim_prefix("--")
 		var eq := s.find("=")
@@ -130,12 +135,10 @@ func _setup_input() -> void:
 	_key("toggle_fullscreen", KEY_F11)
 	_add("toggle_boxes")
 	_key("toggle_boxes", KEY_F2)
+	_add("toggle_inputs")
+	_key("toggle_inputs", KEY_F3)
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_fullscreen"):
-		var w := get_window()
-		if w.mode == Window.MODE_FULLSCREEN or w.mode == Window.MODE_EXCLUSIVE_FULLSCREEN:
-			w.mode = Window.MODE_WINDOWED
-		else:
-			w.mode = Window.MODE_FULLSCREEN
+		Settings.toggle_fullscreen()

@@ -4,8 +4,8 @@ extends Node2D
 
 signal finished(action: String)
 
-const ITEMS := ["VS CPU", "2 PLAYERS", "ONLINE", "CPU LEVEL", "QUIT"]
-const ENABLED := [true, true, true, true, true]
+const ITEMS := ["VS CPU", "2 PLAYERS", "ONLINE", "SETTINGS", "CPU LEVEL", "QUIT"]
+const ENABLED := [true, true, true, true, true, true]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
 
 var cursor := 0
@@ -41,6 +41,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif ITEMS[cursor] == "CPU LEVEL" and (event.is_action_pressed("p1_left") or event.is_action_pressed("p1_right")):
 		var d := -1 if event.is_action_pressed("p1_left") else 1
 		Game.cpu_level = clampi(Game.cpu_level + d, 0, 2)
+		Settings.save()
 		Sfx.play("select")
 	elif event.is_action_pressed("menu_ok"):
 		match ITEMS[cursor]:
@@ -55,8 +56,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			"ONLINE":
 				Sfx.play("confirm")
 				finished.emit("online")
+			"SETTINGS":
+				Sfx.play("confirm")
+				finished.emit("settings")
 			"CPU LEVEL":
 				Game.cpu_level = (Game.cpu_level + 1) % 3
+				Settings.save()
 				Sfx.play("select")
 			"QUIT":
 				get_tree().quit()

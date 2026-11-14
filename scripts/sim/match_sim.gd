@@ -34,9 +34,18 @@ var ko_happened := false
 
 var events: Array = []      # this frame's events for audio/visuals (not saved)
 
+# Match rules, fixed for the whole match (not saved; online both sides use the defaults).
+var round_time := ROUND_TIME   # seconds per round, 0 = no time limit
+var wins_needed := WINS_NEEDED
+var training := false          # nobody gets KO'd; health refills once a combo is over
 
-func _init(c1: String, c2: String) -> void:
+
+## opts (all optional): {"wins": 1..3, "time": seconds or 0, "training": bool}
+func _init(c1: String, c2: String, opts := {}) -> void:
 	f = [Fighter.new(0, c1), Fighter.new(1, c2)]
+	wins_needed = clampi(int(opts.get("wins", WINS_NEEDED)), 1, 3)
+	round_time = maxi(0, int(opts.get("time", ROUND_TIME)))
+	training = bool(opts.get("training", false))
 	start_match()
 
 
@@ -55,7 +64,7 @@ func start_round() -> void:
 	f[1].reset_round(mid + START_GAP, -1)
 	phase = INTRO
 	pf = 0
-	timer = ROUND_TIME
+	timer = round_time
 	timer_frames = 0
 	hitstop = 0
 	round_winner = -1
@@ -96,8 +105,10 @@ func step(i0: int, i1: int) -> void:
 		FIGHT:
 			var counting := hitstop == 0
 			_tick(i0, i1)
-			if phase == FIGHT and counting:
+			if phase == FIGHT and counting and round_time > 0:
 				_count_timer()
+			if training:
+				_refill()
 		KO_SLOW:
 			if pf % 2 == 0 or hitstop > 0:
 				_tick(0, 0)
@@ -114,11 +125,11 @@ func step(i0: int, i1: int) -> void:
 		WIN_POSE:
 			_tick(0, 0)
 			if pf >= 160:
-				if f[0].wins >= WINS_NEEDED or f[1].wins >= WINS_NEEDED:
-					if f[0].wins >= WINS_NEEDED and f[1].wins >= WINS_NEEDED:
+				if f[0].wins >= wins_needed or f[1].wins >= wins_needed:
+					if f[0].wins >= wins_needed and f[1].wins >= wins_needed:
 						match_winner = 2
 					else:
-						match_winner = 0 if f[0].wins >= WINS_NEEDED else 1
+						match_winner = 0 if f[0].wins >= wins_needed else 1
 					phase = MATCH_OVER
 					pf = 0
 					events.append({"t": "match_over", "w": match_winner})
@@ -153,6 +164,13 @@ func _tick(i0: int, i1: int) -> void:
 			e["slot"] = fi.slot
 			events.append(e)
 		fi.ev.clear()
+
+
+## Training: health comes back to full as soon as a fighter is free to act again.
+func _refill() -> void:
+	for fi in f:
+		if fi.state in [Fighter.IDLE, Fighter.WALK, Fighter.CROUCH, Fighter.AIR, Fighter.PREJUMP, Fighter.ATTACK] 				and fi.health > 0:
+			fi.health = int(fi.data["health"])
 
 
 func _count_timer() -> void:
@@ -293,7 +311,7 @@ func _apply(att: Fighter, def: Fighter, at: Dictionary) -> void:
 	var in_combo := def.state == Fighter.HITSTUN or def.state == Fighter.FALL
 	def.combo = def.combo + 1 if in_combo else 1
 	var dmg: int = int(m["damage"]) * clampi(11 - def.combo, 5, 10) / 10
-	def.health = maxi(0, def.health - dmg)
+	def.health = maxi(1 if training else 0, def.health - dmg)
 	att.score += dmg * 10 + 100 * (def.combo - 1)
 	def.guarding = false
 	def.bounced = false

@@ -148,7 +148,7 @@ func _name_and_wins(i: int) -> void:
 	else:
 		var w := PixelFont.width(nm, 2)
 		PixelFont.draw(self, nm, Vector2(354 - w - 2, y), 2, NAME_GRAD, DARK, 1, false, 1)
-	for k in 2:
+	for k in sim.wins_needed:
 		var bx := (30 + k * 11) if i == 0 else (384 - 30 - 9 - k * 11)
 		var by := 42
 		draw_rect(Rect2(bx, by, 9, 9), Color("0a0a20"))
@@ -178,8 +178,8 @@ func _timer() -> void:
 	draw_rect(Rect2(x0 + 1, y0 + 1, 28, 28), Color("4060d0"))
 	draw_rect(Rect2(x0 + 2, y0 + 2, 26, 26), Color("101038"))
 	PixelFont.draw_centered(self, "TIME", 192, y0 + 3, 1, [Color("e0e8ff"), Color("90a8ff")])
-	var tt := "%02d" % sim.timer
-	var flash := sim.timer <= 10 and sim.phase == MatchSim.FIGHT and (_blink / 8) % 2 == 0
+	var tt := "%02d" % sim.timer if sim.round_time > 0 else "--"
+	var flash := sim.round_time > 0 and sim.timer <= 10 and sim.phase == MatchSim.FIGHT and (_blink / 8) % 2 == 0
 	PixelFont.draw_centered(self, tt, 192, y0 + 13, 2, KO_GRAD if flash else TIMER_GRAD, DARK, 0, true)
 
 
