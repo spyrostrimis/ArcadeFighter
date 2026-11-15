@@ -158,7 +158,7 @@ static func attack(cid: String, t: float, mv: String, f: int, m: Dictionary) -> 
 		ho["open"] = 1.0
 	var wind := with(base, wo)
 	var hit := with(base, ho)
-	if mv.ends_with("p") and cid == "ced":
+	if mv.ends_with("p") and cid != "kros":
 		hit["open"] = 0.0
 	var s: int = m["startup"]
 	var a: int = m["active"]

@@ -1,7 +1,7 @@
 extends Node
 ## Global state: input map, match setup, command-line test options.
 
-const CHARACTERS := ["ced", "kros"]
+const CHARACTERS := ["ced", "kros", "murfurrie"]
 
 var p1_char := "ced"
 var p2_char := "kros"

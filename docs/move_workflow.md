@@ -37,14 +37,14 @@ before doing anything.
 
 ### Characters
 
-| | CED | KROS |
-|---|---|---|
-| Standing height (game px) | **92** (= Ryu's scale, see `art/ref/sf_scale.png`) | **97** (a little taller) |
-| Look | short brown hair, stubble, brown knit sweater, baggy beige trousers, brown lace-up boots | grey curly hair, goatee, black ruffled shirt, black brocade vest with gold watch chain, gold brooch, pendant, black jeans, tall black boots; red/black velvet cape with gold Greek-key trim |
-| Style references to attach in ChatGPT | `art/ced/ref/hp_keys.webp` (+ `art/ref/mockup.webp`) | `art/kros/ref/kicks_nocape.webp` (+ `art/kros/ref/ref_nocape.webp`) |
-| Aseprite file | `art/ced/ced.aseprite` | `art/kros/kros_nocape.aseprite` (fights in this), `art/kros/kros.aseprite` (cape: round intro only) |
-| Build script | `tools/aseprite/build_ced.lua` | `tools/aseprite/build_kros.lua` (builds both costumes) |
-| Sprite set | `assets/fighters/ced/` | `assets/fighters/kros_nocape/` (+ `kros/`) |
+| | CED | KROS | MURFURRIE |
+|---|---|---|---|
+| Standing height (game px) | **92** (= Ryu's scale, see `art/ref/sf_scale.png`) | **97** (a little taller) | **94** |
+| Look | short brown hair, stubble, brown knit sweater, baggy beige trousers, brown lace-up boots | grey curly hair, goatee, black ruffled shirt, black brocade vest with gold watch chain, gold brooch, pendant, black jeans, tall black boots; red/black velvet cape with gold Greek-key trim | short dark hair (faded sides, swept up on top), short dark beard and moustache, angry scowl; light blue suit jacket and trousers over a dark navy button-up shirt, black dress shoes |
+| Style references to attach in ChatGPT | `art/ced/ref/hp_keys.webp` (+ `art/ref/mockup.webp`) | `art/kros/ref/kicks_nocape.webp` (+ `art/kros/ref/ref_nocape.webp`) | `art/ced/ref/hp_keys.webp` for style + the face photo `art/murfurrie/ref/face_photo.png` (local only, git-ignored); once he has a sheet, his own `art/murfurrie/ref/hp_keys.webp` |
+| Aseprite file | `art/ced/ced.aseprite` | `art/kros/kros_nocape.aseprite` (fights in this), `art/kros/kros.aseprite` (cape: round intro only) | `art/murfurrie/murfurrie.aseprite` (not made yet) |
+| Build script | `tools/aseprite/build_ced.lua` | `tools/aseprite/build_kros.lua` (builds both costumes) | `tools/aseprite/build_murfurrie.lua` (to write, copy `build_ced.lua`) |
+| Sprite set | `assets/fighters/ced/` | `assets/fighters/kros_nocape/` (+ `kros/`) | `assets/fighters/murfurrie/` |
 
 KROS wears the cape only in the round intro (it blinks and fades away), then fights without it.
 So **KROS's fight moves need only the no-cape sheet**. The cape costume has `idle` and `cape`,
@@ -58,6 +58,7 @@ Both face **right** in all art (the game mirrors them).
 |---|---|
 | CED | `idle`, `crouch`, `st_hp`, `cr_hk`, `walk_f`, `walk_b`, `flying_knee` (Mixamo, see `docs/character_pipeline.md`) |
 | KROS | `idle`, `st_mk`, `st_hk` (both costumes), `cr_hk`, `walk_f`, `walk_b` (no cape), `cape` |
+| MURFURRIE | none yet: placeholder puppet (light blue suit). First sheet: stance + heavy punch (`idle`, `st_hp`) |
 
 Update this table when a move is added.
 
@@ -98,6 +99,9 @@ sheet, so ChatGPT keeps the same style and proportions), then give the prompt. T
 
 Character-specific lines to add:
 - **CED**: "brown knit sweater, baggy beige trousers, brown lace-up boots, short brown hair, stubble."
+- **MURFURRIE**: "short dark hair, faded on the sides and swept up on top, short dark beard and moustache,
+  angry scowl with gritted teeth; light blue suit jacket (open) and light blue suit trousers, dark navy
+  button-up shirt, black dress shoes." Attach the face photo for the face only.
 - **KROS**: "**without the cape**: black ruffled shirt, black brocade vest with gold watch chain and
   gold brooch, silver pendant, black jeans, tall black boots, grey curly hair, goatee."
 

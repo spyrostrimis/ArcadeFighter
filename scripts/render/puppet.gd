@@ -10,6 +10,9 @@ const SKEL := {
 		"ua_w": 8.0, "fa_w": 7.0, "thigh_w": 11.0, "shin_w": 10.0, "waist": 9.0, "chest": 11.5, "fist": 4.0},
 	"kros": {"torso": 32.0, "neck": 4.0, "head_r": 8.0, "ua": 17.0, "fa": 16.0, "thigh": 28.0, "shin": 27.0,
 		"ua_w": 7.0, "fa_w": 6.0, "thigh_w": 9.0, "shin_w": 8.0, "waist": 8.0, "chest": 11.0, "fist": 3.5},
+	# Broad-shouldered, suit jacket squares off the chest.
+	"murfurrie": {"torso": 31.0, "neck": 4.0, "head_r": 8.0, "ua": 16.0, "fa": 15.0, "thigh": 26.0, "shin": 26.0,
+		"ua_w": 8.0, "fa_w": 7.0, "thigh_w": 10.0, "shin_w": 9.0, "waist": 9.5, "chest": 12.5, "fist": 4.0},
 }
 
 
@@ -30,6 +33,23 @@ static func palette(cid: String, alt := false) -> Dictionary:
 			p["top_hi"] = Color("ffffff")
 			p["hair"] = Color("d8d0c0")
 		return p
+	if cid == "murfurrie":
+		# Light blue suit (jacket + trousers) over a dark navy shirt, black dress shoes.
+		var m := {
+			"skin": Color("e0ad8a"), "hair": Color("231a17"), "hair_hi": Color("4a3a32"), "hair_dk": Color("0e0a09"),
+			"top": Color("8db6dc"), "top_hi": Color("c4def4"), "pants": Color("86afd6"), "pants_hi": Color("b6d2ee"),
+			"shirt": Color("1b2744"), "shirt_hi": Color("33456e"), "button": Color("d8cfbe"),
+			"boot": Color("231b19"), "boot_hi": Color("5a4a44"), "sole": Color("0c0808"),
+			"beard": Color("3a2a24"), "eye": Color("2a140a"),
+		}
+		if alt:
+			m["top"] = Color("54585f")
+			m["top_hi"] = Color("80858e")
+			m["pants"] = Color("4c5057")
+			m["pants_hi"] = Color("767b84")
+			m["shirt"] = Color("5a1620")
+			m["shirt_hi"] = Color("84283a")
+		return m
 	var c := {
 		"skin": Color("e7a77a"), "hair": Color("6b3b1e"), "hair_hi": Color("9a5c30"), "hair_dk": Color("40220f"),
 		"top": Color("7b5236"), "top_hi": Color("a5754f"), "pants": Color("d9c9a8"), "pants_hi": Color("f3e8cc"),
@@ -205,6 +225,25 @@ static func _torso(ci: CanvasItem, cid: String, s: Dictionary, pal: Dictionary) 
 			var b := pel + perp * (i * 3.5)
 			ci.draw_line(P(b + up * 3.0), P(b + up * 9.0), _shade(pal["top"], 0.85), 1.0)
 		ci.draw_line(P(neck - perp * 4.0 + up * 1.0), P(neck + perp * 4.0 + up * 1.0), _shade(pal["top"], 0.55), 2.0)
+	elif cid == "murfurrie":
+		# open suit jacket: dark shirt in a V down to the button, lapels, shirt collar and buttons
+		var vtop_b := neck - perp * 3.0 + up * 1.5
+		var vtop_f := neck + perp * 5.0 + up * 1.5
+		var vbot := pel + perp * 2.0 + up * 9.0
+		ci.draw_colored_polygon(PackedVector2Array([P(vtop_b), P(vtop_f), P(vbot)]), pal["shirt"])
+		ci.draw_line(P(vtop_f - perp * 1.5 - up * 1.0), P(vbot + up * 2.0), pal["shirt_hi"], 1.0)
+		for i in 3:
+			ci.draw_rect(Rect2(P(neck + perp * 1.5 - up * (5.0 + i * 6.0)), Vector2(1, 1)), pal["button"])
+		# collar points and the open neck (skin)
+		ci.draw_colored_polygon(PackedVector2Array([P(neck - perp * 1.0 + up * 2.0), P(neck + perp * 3.0 + up * 2.0),
+			P(neck + perp * 1.5 - up * 2.0)]), pal["skin"])
+		# lapels (light, then the jacket edge in shadow)
+		ci.draw_line(P(vtop_f + up * 0.5), P(vbot), _shade(pal["top"], 0.6), 1.0)
+		ci.draw_line(P(vtop_b + up * 0.5), P(vbot - perp * 1.0), pal["top_hi"], 1.0)
+		ci.draw_rect(Rect2(P(vbot - up * 1.0), Vector2(1, 1)), pal["button"])  # jacket button
+		# hem and pocket flap
+		ci.draw_line(P(pel + perp * w0 - up * 1.0), P(pel - perp * w0 - up * 1.0), _shade(pal["top"], 0.65), 1.0)
+		ci.draw_line(P(pel - perp * 6.0 + up * 4.0), P(pel - perp * 1.5 + up * 4.0), _shade(pal["top"], 0.7), 1.0)
 	else:
 		# open collar showing chest, gold pendant, belt
 		var v := PackedVector2Array([P(neck - perp * 3.0 + up * 1.5), P(neck + perp * 4.0 + up * 1.5), P(neck + perp * 1.0 - up * 12.0)])
@@ -248,6 +287,22 @@ static func _head(ci: CanvasItem, cid: String, s: Dictionary, pal: Dictionary) -
 			ci.draw_circle(P(bp2), 3.4, pal["hair"])
 			ci.draw_rect(Rect2(P(bp2 + hup * 1.5 - fw * 1.0), Vector2(1, 1)), pal["hair_hi"])
 			ci.draw_rect(Rect2(P(bp2 - hup * 1.5 + fw * 1.0), Vector2(1, 1)), pal["hair_dk"])
+	elif cid == "murfurrie":
+		# short, faded sides; volume swept up and back on top, a tuft rising over the forehead
+		var mp := PackedVector2Array([P(hc - fw * (r + 0.3) - hup * 2.5), P(hc - fw * 5.0 + hup * (r + 0.5)),
+			P(hc + fw * 1.0 + hup * (r + 2.5)), P(hc + fw * 5.5 + hup * (r + 2.0)), P(hc + fw * (r - 0.5) + hup * 4.0),
+			P(hc + fw * 2.0 + hup * 4.5), P(hc - fw * 2.0 + hup * 2.0), P(hc - fw * 3.0 - hup * 3.0)])
+		var c := Vector2.ZERO
+		for p in mp:
+			c += p
+		c /= mp.size()
+		var ol := PackedVector2Array()
+		for p in mp:
+			ol.append(p + (p - c).normalized() * 1.2)
+		ci.draw_colored_polygon(ol, OUTLINE)
+		ci.draw_colored_polygon(mp, pal["hair"])
+		ci.draw_line(P(hc - fw * 3.0 + hup * (r - 0.5)), P(hc + fw * 4.5 + hup * (r + 1.0)), pal["hair_hi"], 1.0)
+		ci.draw_line(P(hc - fw * (r - 1.0) - hup * 1.0), P(hc - fw * 3.5 + hup * 1.0), pal["hair_dk"], 1.0)  # faded side
 	else:
 		var hp := PackedVector2Array([P(hc - fw * (r + 0.5) - hup * 2.0), P(hc - fw * 4.0 + hup * (r + 0.8)),
 			P(hc + fw * 5.5 + hup * (r - 0.5)), P(hc + fw * (r - 0.5) + hup * 3.5), P(hc + fw * 1.0 + hup * 4.0),
@@ -256,6 +311,19 @@ static func _head(ci: CanvasItem, cid: String, s: Dictionary, pal: Dictionary) -
 		ci.draw_line(P(hc - fw * 2.0 + hup * (r - 0.5)), P(hc + fw * 4.0 + hup * (r - 1.0)), pal["hair_hi"], 1.0)
 	# face: brow, eye, nose, mouth
 	var eye := hc + fw * 4.0 + hup * 0.5
+	if cid == "murfurrie":
+		# beard along the jaw and chin, moustache, angry brow pulled down to the nose, gritted teeth
+		var jaw := hc + fw * 2.5 - hup * 3.5
+		# short boxed beard: a strip along the jawline from the sideburn, thicker on the chin
+		ci.draw_line(P(hc - fw * 0.8 - hup * 1.5), P(jaw + fw * 1.0 - hup * 4.0), pal["beard"], 2.0)
+		ci.draw_line(P(jaw + fw * 1.0 - hup * 4.0), P(jaw + fw * 4.0 - hup * 3.0), pal["beard"], 2.0)
+		ci.draw_rect(Rect2(P(jaw + fw * 3.0 - hup * 2.5), Vector2(2, 2)), pal["beard"])
+		ci.draw_line(P(hc + fw * 3.5 - hup * 3.4), P(hc + fw * 7.0 - hup * 3.2), pal["beard"], 1.0)  # moustache
+		ci.draw_line(P(hc + fw * 3.8 - hup * 4.6), P(hc + fw * 6.6 - hup * 4.4), Color("f2ece0"), 1.0)  # teeth
+		ci.draw_line(P(eye + hup * 2.6 - fw * 1.5), P(eye + hup * 0.8 + fw * 2.5), OUTLINE, 2.0)  # scowl
+		ci.draw_rect(Rect2(P(eye), Vector2(2, 1)), pal["eye"])
+		ci.draw_rect(Rect2(P(hc + fw * (r + 0.5) - hup * 1.5), Vector2(1, 2)), _shade(skin, 0.75))
+		return
 	ci.draw_line(P(eye + hup * 2.0 - fw * 1.5), P(eye + hup * 1.2 + fw * 2.0), OUTLINE, 1.0)
 	ci.draw_rect(Rect2(P(eye), Vector2(2, 1)), pal["eye"])
 	ci.draw_rect(Rect2(P(hc + fw * (r + 0.5) - hup * 1.5), Vector2(1, 2)), _shade(skin, 0.75))
@@ -341,6 +409,10 @@ static func draw(ci: CanvasItem, cid: String, pal: Dictionary, pose: Dictionary,
 	# front leg
 	_limb(ci, s["hip_f"], s["kn_f"], k["thigh_w"], pal["pants"], pal["pants_hi"])
 	_limb(ci, s["kn_f"], s["ft_f"], k["shin_w"], pal["pants"], pal["pants_hi"])
+	if cid == "murfurrie":
+		# trouser crease down the front leg
+		ci.draw_line(P((s["hip_f"] as Vector2).lerp(s["kn_f"], 0.3)), P((s["kn_f"] as Vector2).lerp(s["ft_f"], 0.8)),
+			pal["pants_hi"], 1.0)
 	if cid == "ced":
 		# baggy trouser folds
 		var kn: Vector2 = s["kn_f"]
@@ -359,6 +431,10 @@ static func draw(ci: CanvasItem, cid: String, pal: Dictionary, pose: Dictionary,
 		var h: Vector2 = s["ha_f"]
 		var cuff := e.lerp(h, 0.8)
 		ci.draw_circle(P(cuff), float(k["fa_w"]) * 0.5, _shade(pal["top"], 0.7))
+	elif cid == "murfurrie":
+		# dark shirt cuff showing at the end of the jacket sleeve
+		var cuff2: Vector2 = (s["el_f"] as Vector2).lerp(s["ha_f"], 0.85)
+		ci.draw_circle(P(cuff2), float(k["fa_w"]) * 0.45, pal["shirt"])
 	_hand(ci, s["el_f"], s["ha_f"], pal, k["fist"], open, false)
 
 

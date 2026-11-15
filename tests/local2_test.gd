@@ -65,10 +65,10 @@ func _physics_process(_delta: float) -> bool:
 		2:
 			_check(_is(s, "SelectScreen"), "2 PLAYERS opens select")
 			_check(_is(s, "SelectScreen") and s.local2, "select is in 2-player mode")
-			_tap(KEY_L)        # P2 cursor right (wraps)
+			_tap(KEY_J)        # P2 cursor left (KROS -> CED, any roster size)
 			wait = 2
 		3:
-			_check(s.cursor[1] == 0, "P2 cursor moves with L (got %d)" % s.cursor[1])
+			_check(s.cursor[1] == 0, "P2 cursor moves with J (got %d)" % s.cursor[1])
 			_tap(KEY_KP_4)     # P2 picks
 			wait = 2
 		4:

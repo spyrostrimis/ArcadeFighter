@@ -20,7 +20,7 @@ const CAPED := {"kros": "kros_nocape"}   # fighter id -> its sprite set once the
 const FADE_AT := 24     # intro frame the cape starts blinking ("ROUND n" is on screen 8-70)
 const FADE_LEN := 44    # frames until it is gone
 ## Placeholder puppet size -> sprite size (CED 113 -> 92 px, KROS 110 -> 97 px).
-const PUPPET_SCALE := {"ced": 92.0 / 113.0, "kros": 97.0 / 110.0}
+const PUPPET_SCALE := {"ced": 92.0 / 113.0, "kros": 97.0 / 110.0, "murfurrie": 94.0 / 113.0}
 
 
 ## `skin` picks another sprite set for the same fighter (e.g. "kros_nocape": KROS without

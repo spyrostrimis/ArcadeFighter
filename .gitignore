@@ -6,3 +6,6 @@ build/
 # Godot temp copies of locked DLLs
 *.TMP
 ~*.dll
+
+# Real-person reference photos stay local (public repo)
+art/*/ref/*photo*

@@ -227,30 +227,36 @@ func _draw() -> void:
 		PixelFont.draw_centered(self, tags[1], 318, 30, 2, [Color("a0d0ff"), Color("3068e0")], Hud.DARK, 0, true)
 		if both and picked[1]:
 			PixelFont.draw_centered(self, "READY", 318, 60, 1, Hud.FIGHT_GRAD, Hud.DARK, 0, true)
-	# portrait cards
-	for i in Game.CHARACTERS.size():
+	# portrait cards: 64 px wide for two fighters, narrower so three fit between the previews
+	var n := Game.CHARACTERS.size()
+	var cw := 64 if n <= 2 else 58
+	var gap := 8 if n <= 2 else 3
+	var row_x := 192 - (n * cw + (n - 1) * gap) / 2
+	for i in n:
 		var c: String = Game.CHARACTERS[i]
-		var x0 := 192 - 68 + i * 72
+		var x0 := row_x + i * (cw + gap)
 		var y0 := 60
 		var pal: Dictionary = pals[c]
-		draw_rect(Rect2(x0 - 1, y0 - 1, 66, 76), Color("0a0a20"))
-		draw_rect(Rect2(x0, y0, 64, 74), Color("e0a040"))
-		draw_rect(Rect2(x0 + 2, y0 + 2, 60, 70), Color("7a1c18") if i == 0 else Color("2a1840"))
-		draw_rect(Rect2(x0 + 2, y0 + 50, 60, 12), pal["top"])
-		Puppet.draw_portrait(self, c, pal, Vector2(x0 + 32, y0 + 30), 2.4, i == 1, false)
-		draw_rect(Rect2(x0 + 2, y0 + 62, 60, 10), Color("0a0a20"))
-		PixelFont.draw_centered(self, String(CharData.get_data(c)["name"]), x0 + 32, y0 + 64, 1, Hud.NAME_GRAD, null, 0, true)
+		draw_rect(Rect2(x0 - 1, y0 - 1, cw + 2, 76), Color("0a0a20"))
+		draw_rect(Rect2(x0, y0, cw, 74), Color("e0a040"))
+		draw_rect(Rect2(x0 + 2, y0 + 2, cw - 4, 70), Color("7a1c18") if i == 0 else Color("2a1840"))
+		draw_rect(Rect2(x0 + 2, y0 + 50, cw - 4, 12), pal["top"])
+		Puppet.draw_portrait(self, c, pal, Vector2(x0 + cw / 2, y0 + 30), 2.4 if n <= 2 else 2.2, i == n - 1, false)
+		draw_rect(Rect2(x0 + 2, y0 + 62, cw - 4, 10), Color("0a0a20"))
+		var nm := String(CharData.get_data(c)["name"])
+		PixelFont.draw_centered(self, nm, x0 + cw / 2, y0 + 64, 1, Hud.NAME_GRAD, null, 0,
+				PixelFont.width(nm, 1, true) <= cw - 4)
 		# cursors
 		var blink := (t / 8) % 2 == 0
 		var show0: bool = (stage == 0 and blink or stage == 1) if not both else (blink or picked[0])
 		var show1: bool = (stage == 1 and blink) if not both else (blink or picked[1])
 		if cursor[0] == i and show0:
-			draw_rect(Rect2(x0 - 3, y0 - 3, 70, 80), Color("ff3020"), false, 2.0)
+			draw_rect(Rect2(x0 - 3, y0 - 3, cw + 6, 80), Color("ff3020"), false, 2.0)
 			PixelFont.draw(self, tags[0], Vector2(x0 - 2, y0 - 12), 1, [Color("ff9070"), Color("e83818")], Hud.DARK, 0, true)
 		if (stage == 1 or both) and cursor[1] == i and show1:
-			draw_rect(Rect2(x0 - 5, y0 - 5, 74, 84), Color("40a0ff"), false, 2.0)
+			draw_rect(Rect2(x0 - 5, y0 - 5, cw + 10, 84), Color("40a0ff"), false, 2.0)
 			var tw := PixelFont.width(tags[1], 1, true)
-			PixelFont.draw(self, tags[1], Vector2(x0 + 66 - tw, y0 - 12), 1, [Color("a0d0ff"), Color("3068e0")], Hud.DARK, 0, true)
+			PixelFont.draw(self, tags[1], Vector2(x0 + cw + 2 - tw, y0 - 12), 1, [Color("a0d0ff"), Color("3068e0")], Hud.DARK, 0, true)
 	var help := "LEFT/RIGHT CHOOSE   ENTER OR A CONFIRM   ESC BACK"
 	if local2:
 		help = "1P ARROWS + A    2P IJKL + NUM 4    ESC BACK"

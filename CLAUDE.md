@@ -1,6 +1,6 @@
 # ArcadeFighter
 
-Godot 4.7 retro 16-bit fighting game (CED vs KROS). See README.md for controls and layout.
+Godot 4.7 retro 16-bit fighting game (CED, KROS, MURFURRIE). See README.md for controls and layout.
 
 - **Adding a character move** (the user names a move, character and key, then pastes a ChatGPT
   sheet): follow [docs/move_workflow.md](docs/move_workflow.md) step by step.

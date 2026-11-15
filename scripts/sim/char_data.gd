@@ -1,6 +1,7 @@
 class_name CharData
 ## Per-character stats and frame data. All distances in pixels, times in frames (60/s).
-## Sprite heights (Street Fighter scale on a 216 px screen): CED 92 px, KROS 97 px.
+## Sprite heights (Street Fighter scale on a 216 px screen): CED 92 px, KROS 97 px,
+## MURFURRIE 94 px.
 ## Boxes are [x, y, w, h]: x forward from the feet, y up from the feet (or from
 ## the fighter's current height when airborne).
 
@@ -11,7 +12,10 @@ static var _cache := {}
 
 static func get_data(id: String) -> Dictionary:
 	if not _cache.has(id):
-		_cache[id] = _ced() if id == "ced" else _kros()
+		match id:
+			"ced": _cache[id] = _ced()
+			"murfurrie": _cache[id] = _murfurrie()
+			_: _cache[id] = _kros()
 	return _cache[id]
 
 
@@ -107,5 +111,40 @@ static func _kros() -> Dictionary:
 			"j_lk": _mv(4, 10, 0, 35, 16, 12, [5, 7, 28, 14], G.HIGH),
 			"j_mk": _mv(6, 6, 0, 65, 19, 15, [7, 4, 34, 16], G.HIGH),
 			"j_hk": _mv(8, 6, 0, 110, 23, 17, [7, 0, 39, 19], G.HIGH),
+		},
+	}
+
+
+static func _murfurrie() -> Dictionary:
+	var G := Guard
+	return {
+		"id": "murfurrie", "name": "MURFURRIE",
+		# Angry brawler in a suit: tougher and hits harder than Ced, but slower on his feet
+		# and a frame slower on the heavies. Reach between Ced's and Kros's.
+		"health": 1050,
+		"walk_f": 280, "walk_b": 230,
+		"jump_vy": 1090, "jump_vx": 350, "gravity": 66,
+		"push_w": 12,
+		"hurt_stand": [-12, 0, 24, 83], "hurt_crouch": [-14, 0, 27, 52], "hurt_air": [-11, 10, 23, 64],
+		"moves": {
+			"st_lp": _mv(4, 2, 6, 30, 13, 10, [10, 61, 23, 10]),
+			"st_mp": _mv(6, 3, 8, 65, 17, 14, [11, 58, 28, 12]),
+			# Big straight right, steps in.
+			"st_hp": _mv(8, 4, 16, 110, 22, 17, [11, 52, 32, 17], G.MID, {"step": [2, 9, 200]}),
+			"st_lk": _mv(5, 3, 7, 35, 13, 10, [8, 18, 28, 11]),
+			"st_mk": _mv(7, 4, 10, 70, 17, 14, [10, 37, 34, 13]),
+			"st_hk": _mv(10, 4, 17, 115, 22, 17, [10, 54, 36, 17]),
+			"cr_lp": _mv(4, 2, 6, 25, 12, 10, [10, 35, 22, 8]),
+			"cr_mp": _mv(6, 3, 8, 60, 16, 13, [10, 34, 28, 10]),
+			"cr_hp": _mv(7, 5, 21, 100, 22, 16, [3, 37, 25, 47], G.MID, {"kd": true}),
+			"cr_lk": _mv(5, 3, 7, 25, 12, 10, [8, 0, 28, 8], G.LOW),
+			"cr_mk": _mv(7, 3, 10, 60, 16, 13, [8, 0, 36, 10], G.LOW),
+			"cr_hk": _mv(8, 3, 24, 95, 22, 16, [8, 0, 55, 10], G.LOW, {"kd": true}),
+			"j_lp": _mv(4, 8, 0, 35, 16, 12, [5, 29, 23, 15], G.HIGH),
+			"j_mp": _mv(5, 6, 0, 70, 19, 15, [5, 24, 26, 17], G.HIGH),
+			"j_hp": _mv(8, 5, 0, 105, 23, 17, [5, 17, 30, 22], G.HIGH),
+			"j_lk": _mv(4, 10, 0, 35, 16, 12, [5, 8, 25, 13], G.HIGH),
+			"j_mk": _mv(6, 6, 0, 70, 19, 15, [7, 5, 30, 15], G.HIGH),
+			"j_hk": _mv(8, 6, 0, 110, 23, 17, [7, 1, 35, 17], G.HIGH),
 		},
 	}
