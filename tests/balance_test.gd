@@ -1,17 +1,23 @@
 extends SceneTree
-## Headless balance check: many seeded CED vs KROS CPU matches, both sides, all levels.
+## Headless balance check: many seeded CPU matches (CED vs KROS by default), both sides, all levels.
 ## Prints win rates and which moves deal the damage.
-## Run: godot --headless --path . --script res://tests/balance_test.gd [-- --n=100 --lvl=2]
+## Run: godot --headless --path . --script res://tests/balance_test.gd [-- --n=100 --lvl=2 --a=murfurrie --b=ced]
 ## Try a change without editing char_data: -- --p=ced.cr_hk.startup=8 --p=kros.cr_hk.boxw=58
 
 var n := 100
 var levels := [0, 1, 2]
+var ca := "ced"
+var cb := "kros"
 
 
 func _init() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--n="):
 			n = int(a.substr(4))
+		elif a.begins_with("--a="):
+			ca = a.substr(4)
+		elif a.begins_with("--b="):
+			cb = a.substr(4)
 		elif a.begins_with("--lvl="):
 			levels = [int(a.substr(6))]
 		elif a.begins_with("--p="):   # experiment: --p=ced.cr_hk.startup=8 / boxw=52 / recovery=25
@@ -23,35 +29,33 @@ func _init() -> void:
 			else:
 				mv[path[2]] = int(kv[1])
 	var ok := true
-	var total_ced := 0
+	var total_a := 0
 	var total := 0
 	for lvl in levels:
-		var wins := {"ced": 0, "kros": 0, "draw": 0}
-		var rounds := {"ced": 0, "kros": 0}
-		var hp_left := {"ced": 0, "kros": 0}
-		var dmg := {"ced": {}, "kros": {}}
+		var wins := {ca: 0, cb: 0, "draw": 0}
+		var rounds := {ca: 0, cb: 0}
+		var dmg := {ca: {}, cb: {}}
 		var timeouts := 0
 		for i in n:
 			# alternate sides so slot 0/1 has no say
-			var ced_slot := i % 2
-			var c := ["ced", "kros"] if ced_slot == 0 else ["kros", "ced"]
+			var a_slot := i % 2
+			var c := [ca, cb] if a_slot == 0 else [cb, ca]
 			var r := _play(c[0], c[1], lvl, 9000 + i * 7 + lvl * 1000, dmg)
 			timeouts += r.timeouts
-			rounds["ced"] += r.wins[ced_slot]
-			rounds["kros"] += r.wins[1 - ced_slot]
+			rounds[ca] += r.wins[a_slot]
+			rounds[cb] += r.wins[1 - a_slot]
 			if r.winner == 2:
 				wins["draw"] += 1
-			elif r.winner == ced_slot:
-				wins["ced"] += 1
+			elif r.winner == a_slot:
+				wins[ca] += 1
 			else:
-				wins["kros"] += 1
-			hp_left["ced"] += r.hp_sum[ced_slot]
-			hp_left["kros"] += r.hp_sum[1 - ced_slot]
-		total_ced += wins["ced"]
+				wins[cb] += 1
+		total_a += wins[ca]
 		total += n
-		print("lvl %d: CED %d  KROS %d  draw %d   rounds CED %d KROS %d   timeouts %d" % [
-			lvl, wins["ced"], wins["kros"], wins["draw"], rounds["ced"], rounds["kros"], timeouts])
-		for cid in ["ced", "kros"]:
+		print("lvl %d: %s %d  %s %d  draw %d   rounds %s %d %s %d   timeouts %d" % [
+			lvl, ca.to_upper(), wins[ca], cb.to_upper(), wins[cb], wins["draw"],
+			ca.to_upper(), rounds[ca], cb.to_upper(), rounds[cb], timeouts])
+		for cid in [ca, cb]:
 			var rows: Array = []
 			var sum := 0
 			for k in dmg[cid]:
@@ -62,8 +66,8 @@ func _init() -> void:
 			for row in rows.slice(0, 8):
 				s += " %s %d%%(%d)" % [row[0], row[1] * 100 / maxi(1, sum), row[2]]
 			print(s)
-	var rate := float(total_ced) / maxf(1.0, total)
-	print("CED match win rate overall: %.0f%%" % (rate * 100.0))
+	var rate := float(total_a) / maxf(1.0, total)
+	print("%s match win rate overall: %.0f%%" % [ca.to_upper(), rate * 100.0])
 	# Fail when one side is clearly stronger (CPU vs CPU should be close to even).
 	ok = rate >= 0.35 and rate <= 0.65
 	print("RESULT: ", "PASS" if ok else "FAIL")
@@ -92,6 +96,8 @@ func _play(c1: String, c2: String, lvl: int, seed_value: int, dmg: Dictionary) -
 				var lost: int = prev_hp[def.slot] - def.health
 				var d: Dictionary = dmg[att.cid]
 				var mv: String = att.move if att.state == Fighter.ATTACK else "?"
+				if e.get("proj", false):
+					mv = att.pj_move
 				if not d.has(mv):
 					d[mv] = [0, 0]
 				d[mv][0] += maxi(0, lost)

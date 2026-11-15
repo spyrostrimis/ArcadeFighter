@@ -30,6 +30,8 @@ static func load_for(cid: String) -> SpriteSet:
 					# Aseprite export: [x, y, w, h, ax, ay]; old pixelize.py export: one anchor per anim
 					anchors.append(Vector2(fr[4], fr[5]) if fr.size() >= 6 else Vector2(a["anchor"][0], a["anchor"][1]))
 				s.anims[name] = {"frames": frames, "anchors": anchors}
+				if a.has("hit"):   # hit pose named by the export (tag user data), not the widest frame
+					s.anims[name]["hit"] = Vector2i(int(a["hit"][0]), int(a["hit"][1]))
 	_cache[cid] = s
 	return s
 

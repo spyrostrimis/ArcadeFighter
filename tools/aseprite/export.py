@@ -2,6 +2,8 @@
 Every tag becomes an animation (tag name = game move name, e.g. idle, walk_f, st_lp).
 The 'feet' slice marks the point that stands on the floor.
 Frame durations are turned into repeats at the game's 15 fps.
+A tag whose user data is "hit:<n>" marks frame n of the tag (0 = first) as the move's hit pose
+(otherwise the game uses the widest frames).
 Usage: python tools/aseprite/export.py art/ced/ced.aseprite ced"""
 import json, os, subprocess, sys, tempfile
 from PIL import Image
@@ -25,13 +27,21 @@ fx, fy = feet["x"], feet["y"]
 anims = {}
 for tag in meta["meta"]["frameTags"]:
     rects, anchors = [], []
+    hit_frame = None
+    if str(tag.get("data", "")).startswith("hit:"):
+        hit_frame = tag["from"] + int(tag["data"][4:])
+    hit = None
     for i in range(tag["from"], tag["to"] + 1):
         fr = frames[i]
         r, sss = fr["frame"], fr["spriteSourceSize"]
         reps = max(1, round(fr["duration"] / 1000 * FPS))
+        if i == hit_frame:
+            hit = [len(rects), len(rects) + reps - 1]
         for _ in range(reps):
             rects.append([r["x"], r["y"], r["w"], r["h"], fx - sss["x"], fy - sss["y"]])
     anims[tag["name"]] = {"frames": rects}
+    if hit:
+        anims[tag["name"]]["hit"] = hit
 
 img = Image.open(sheet).convert("RGBA")
 img.save(os.path.join(out_dir, cid + ".png"))

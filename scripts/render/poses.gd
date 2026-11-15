@@ -128,6 +128,8 @@ static func _attack_keys(mv: String) -> Array:
 		"j_lk": return [{"ff": Vector2(18, 16)}, {"ff": Vector2(37, 16)}]
 		"j_mk": return [{"ff": Vector2(14, 14)}, {"ff": Vector2(43, 12), "lean": -8.0}]
 		"j_hk": return [{"ff": Vector2(10, 20), "lean": -6.0}, {"ff": Vector2(49, 10), "bf": Vector2(-14, 24), "lean": -14.0}]
+		# spit: rear back with the chin up, then lunge the head forward
+		"spit": return [{"lean": -8.0, "head": 16.0, "px": -2.0}, {"lean": 20.0, "head": -16.0, "px": 4.0}]
 	return [{}, {}]
 
 

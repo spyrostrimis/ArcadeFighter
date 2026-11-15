@@ -364,6 +364,14 @@ func _event(e: Dictionary) -> void:
 			_shake = maxi(_shake, 6)
 		"jump":
 			Sfx.play("swing0", -14.0, 0.7)
+		"spit":
+			Sfx.play("swing1", -3.0, 1.7)
+		"splat":
+			Sfx.play("land", -6.0, 1.6)
+			fx.splat(float(e["x"]))
+		"clash":
+			Sfx.play("block", -2.0, 1.3)
+			fx.clash(float(e["x"]), float(e["y"]))
 		"time_over":
 			Sfx.play("round")
 		"match_over":

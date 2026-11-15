@@ -1,6 +1,6 @@
 # Arcade Fighter
 
-Retro 16-bit pixel-art fighting game in Godot 4.7: **CED vs KROS** in the bedroom stage.
+Retro 16-bit pixel-art fighting game in Godot 4.7: **CED, KROS and MURFURRIE** in the bedroom stage.
 
 ## Play
 
@@ -33,6 +33,16 @@ Jump attacks must be blocked standing, and low kicks must be blocked crouching.
 **CED special: Flying Knee** = down, down-forward, forward + punch. He runs in, knees the
 opponent in the face, then hammers down with a punch that knocks down (block it standing).
 
+**MURFURRIE special: Spit** = down, down-forward, forward + punch. A glob of spit flies
+straight at head height, then drops to the floor about halfway across the screen. Crouch
+under it while it flies high, or block it. One on screen at a time.
+
+| | Reach | Punches | Kicks | Speed |
+|---|---|---|---|---|
+| CED | medium | weakest | strongest | fastest |
+| KROS | longest | strongest | weakest | slowest |
+| MURFURRIE | shortest | medium | medium | medium (a bit more health) |
+
 ## Layout
 
 ```
@@ -50,7 +60,7 @@ addons/webrtc_native/  official godotengine/webrtc-native GDExtension (Windows x
 assets/stages/bedroom.png   stage art (512x216; feet stand on y=200)
 tools/gen_stage.py          regenerates the placeholder stage
 tests/simtest.gd            headless CPU-vs-CPU + rollback determinism test
-tests/balance_test.gd       headless CED vs KROS win rates + damage per move (fails outside 35-65%)
+tests/balance_test.gd       headless CPU win rates + damage per move, CED vs KROS or -- --a=X --b=Y (fails outside 35-65%)
 tests/nettest.gd            headless rollback sync test (latency, jitter, loss, disconnect, desync)
 tests/settings_test.gd      headless settings screen: volume, key rebinding/swap, save + load, match rules
 tests/local2_test.gd        headless local 2 players: title -> both pick -> P2 keys drive fighter 2
@@ -59,6 +69,7 @@ tests/cpu_strength.gd       CPU win rate vs scripted "player" tactics (sweep spa
 tests/roomprobe.gd          real signalling + WebRTC connection in one process
 tests/online_pair.sh        two game windows host/join a room and play online matches
 tests/move_shot.gd          in-game screenshots of one move (+ hit boxes), for sprite work
+tests/spit_shot.gd          in-game screenshots of MURFURRIE's Spit at a distance (--gap, --crouch, --block)
 ```
 
 Character art: one move at a time from ChatGPT key-pose sheets, see

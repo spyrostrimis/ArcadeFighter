@@ -18,6 +18,7 @@ const SAVE_FIELDS := [
 	"stun", "crouched", "air_attacked", "jump_dir", "push_v", "fall_kd", "combo",
 	"inp", "prev_inp", "buf", "guarding", "invuln", "score", "wins", "land_len", "bounced",
 	"hit_idx", "qcf", "qcf_t", "guard_t",
+	"pj_on", "pj_move", "pj_x", "pj_y", "pj_vx", "pj_vy", "pj_t",
 ]
 
 var slot := 0
@@ -55,6 +56,14 @@ var hit_idx := 0          # which hit of a multi-hit move is current
 var qcf := 0              # quarter-circle-forward progress: 1 down, 2 down-forward, 3 forward
 var qcf_t := 0            # frames left to continue the motion
 var guard_t := 0          # guard pose frames left while holding back (see GUARD_HOLD)
+# Projectile (one on screen at a time, like a fireball). Spawned by a move with "proj".
+var pj_on := false
+var pj_move := ""         # the move that threw it (its frame data: damage, stun, guard)
+var pj_x := 0             # centre, 1/100 px, world space
+var pj_y := 0             # centre height above the floor, 1/100 px
+var pj_vx := 0
+var pj_vy := 0
+var pj_t := 0             # frames since it was thrown
 
 var ev: Array = []        # events for this frame (sound/effects), not saved
 
@@ -94,6 +103,9 @@ func reset_round(px_pos: int, face: int) -> void:
 	qcf = 0
 	qcf_t = 0
 	guard_t = 0
+	pj_on = false
+	pj_move = ""
+	pj_t = 0
 
 
 func save() -> Array:
@@ -165,6 +177,8 @@ func move_active() -> bool:
 	if state != ATTACK:
 		return false
 	var m := hit_data()
+	if m.has("proj"):
+		return false   # the projectile does the hitting
 	var s: int = m["startup"]
 	return sf >= s and sf < s + int(m["active"])
 
@@ -180,6 +194,8 @@ func is_crouching() -> bool:
 
 
 func is_threat_to(other: Fighter) -> bool:
+	if pj_on and signi(other.x - pj_x) == signi(pj_vx) and absi(pj_x - other.x) < 150 * SUB:
+		return true   # my projectile is coming at them
 	return state == ATTACK and absi(x - other.x) < 150 * SUB
 
 
@@ -188,11 +204,16 @@ func settled() -> bool:
 
 
 func can_block(att: Fighter, m: Dictionary) -> bool:
+	return can_block_from(att.x, m)
+
+
+## Blocks an attack coming from world x `from_x` (the attacker, or its projectile).
+func can_block_from(from_x: int, m: Dictionary) -> bool:
 	if not (state == IDLE or state == WALK or state == CROUCH or state == BLOCKSTUN):
 		return false
 	if airborne():
 		return false
-	var away := Inp.LEFT if att.x > x else (Inp.RIGHT if att.x < x else back_bit())
+	var away := Inp.LEFT if from_x > x else (Inp.RIGHT if from_x < x else back_bit())
 	if not holds(away):
 		return false
 	var down := holds(Inp.DOWN)
@@ -224,7 +245,7 @@ func hurt_rects() -> Array[Rect2i]:
 	else:
 		hb = data["hurt_stand"]
 	out.append(box_to_world(hb))
-	if state == ATTACK:
+	if state == ATTACK and not hit_data().has("proj"):
 		var m := hit_data()
 		var s: int = m["startup"]
 		if sf >= s - 1 and sf < s + int(m["active"]) + int(m["recovery"]) / 2:
@@ -235,6 +256,31 @@ func hurt_rects() -> Array[Rect2i]:
 
 func hit_rect() -> Rect2i:
 	return box_to_world(hit_data()["box"])
+
+
+## The projectile's hit box (world px, y up from the floor), centred on pj_x/pj_y.
+func proj_rect() -> Rect2i:
+	var p: Dictionary = moves[pj_move]["proj"]
+	var w: int = p["w"]
+	var h: int = p["h"]
+	return Rect2i(pj_x / SUB - w / 2, pj_y / SUB - h / 2, w, h)
+
+
+## Flies level for "float" frames, then falls; gone when it reaches the floor or leaves the stage.
+func proj_step(stage_w: int) -> void:
+	if not pj_on:
+		return
+	var p: Dictionary = moves[pj_move]["proj"]
+	pj_t += 1
+	pj_x += pj_vx
+	if pj_t > int(p["float"]):
+		pj_vy -= int(p["grav"])
+	pj_y += pj_vy
+	if pj_y <= 0:
+		pj_on = false
+		ev.append({"t": "splat", "x": pj_x / SUB})
+	elif pj_x < 0 or pj_x > stage_w * SUB:
+		pj_on = false
 
 
 ## Vertical extent of the push box (bottom, top) in px.
@@ -292,6 +338,8 @@ func _track_qcf() -> void:
 ## A special move whose motion is done and whose button was just pressed, or "".
 func _special() -> String:
 	for sp in data.get("specials", []):
+		if pj_on and moves[sp["move"]].has("proj"):
+			continue   # one projectile on screen at a time
 		if sp["motion"] == "qcf" and qcf == 3:
 			for i in sp["buttons"]:
 				if buf[i] <= BUF:
@@ -435,7 +483,10 @@ func _attack(opp: Fighter) -> void:
 	var a: int = m["active"]
 	var r: int = m["recovery"]
 	if sf == s:
-		ev.append({"t": "swing", "s": m["strength"]})
+		if m.has("proj"):
+			_throw(m["proj"])
+		else:
+			ev.append({"t": "swing", "s": m["strength"]})
 	if move.begins_with("j_"):
 		if sf >= s + a:
 			set_state(AIR)
@@ -453,6 +504,17 @@ func _attack(opp: Fighter) -> void:
 	if sf >= s + a + r:
 		_to_neutral()
 		_neutral(opp)
+
+
+func _throw(p: Dictionary) -> void:
+	pj_on = true
+	pj_move = move
+	pj_t = 0
+	pj_x = x + int(p["x"]) * SUB * facing
+	pj_y = y + int(p["y"]) * SUB
+	pj_vx = int(p["vx"]) * facing
+	pj_vy = 0
+	ev.append({"t": "spit", "x": pj_x / SUB, "y": pj_y / SUB})
 
 
 ## Plays a root-motion move: position follows the animation's path, hits come in order.

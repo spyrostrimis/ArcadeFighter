@@ -154,6 +154,7 @@ func _tick(i0: int, i1: int) -> void:
 	f[1].think(f[0])
 	for fi in f:
 		fi.physics()
+		fi.proj_step(STAGE_W)
 	_separate()
 	_clamp()
 	_separate_after_clamp()
@@ -276,6 +277,28 @@ func _hits() -> void:
 		_apply(f[0], f[1], h0)
 	if h1.size() > 0:
 		_apply(f[1], f[0], h1)
+	_proj_hits()
+
+
+## Projectiles: two that meet cancel out; one that touches the opponent hits (or is blocked).
+func _proj_hits() -> void:
+	if f[0].pj_on and f[1].pj_on and f[0].proj_rect().intersects(f[1].proj_rect()):
+		var c := f[0].proj_rect().intersection(f[1].proj_rect())
+		f[0].pj_on = false
+		f[1].pj_on = false
+		events.append({"t": "clash", "x": c.position.x, "y": c.position.y})
+	for att in f:
+		if not att.pj_on:
+			continue
+		var def: Fighter = f[1 - att.slot]
+		var pr := att.proj_rect()
+		for hr in def.hurt_rects():
+			if pr.intersects(hr):
+				var ix := pr.intersection(hr)
+				att.pj_on = false
+				_apply(att, def, {"x": ix.position.x + ix.size.x / 2, "y": ix.position.y + ix.size.y / 2},
+						att.moves[att.pj_move], true)
+				break
 
 
 func _check(att: Fighter, def: Fighter) -> Dictionary:
@@ -289,23 +312,29 @@ func _check(att: Fighter, def: Fighter) -> Dictionary:
 	return {}
 
 
-func _apply(att: Fighter, def: Fighter, at: Dictionary) -> void:
-	var m := att.hit_data()
+## `m` = the hit's frame data (default: the attacker's current hit). `proj`: thrown by the
+## attacker's projectile, so the attacker's own move is untouched and it is never pushed back.
+func _apply(att: Fighter, def: Fighter, at: Dictionary, m := {}, proj := false) -> void:
+	if m.is_empty():
+		m = att.hit_data()
 	var strength: int = m["strength"]
-	var dir := signi(def.x - att.x)
+	var from_x := att.pj_x if proj else att.x
+	var dir := signi(def.x - from_x)
 	if dir == 0:
-		dir = att.facing
-	if def.can_block(att, m):
+		dir = signi(att.pj_vx) if proj else att.facing
+	if def.can_block_from(from_x, m):
 		def.set_state(Fighter.BLOCKSTUN)
 		def.stun = m["blockstun"]
 		def.crouched = def.holds(Inp.DOWN)
 		def.vx = 0
-		att.move_hit = 2
-		_push(att, def, m["push_block"], dir)
+		if not proj:
+			att.move_hit = 2
+		_push(att, def, m["push_block"], dir, proj)
 		hitstop = maxi(hitstop, int(m["hitstop"]) - 3)
 		events.append({"t": "block", "s": strength, "x": at["x"], "y": at["y"], "slot": def.slot})
 		return
-	att.move_hit = 1
+	if not proj:
+		att.move_hit = 1
 	var was_crouching := def.is_crouching()
 	var was_air := def.airborne()
 	var in_combo := def.state == Fighter.HITSTUN or def.state == Fighter.FALL
@@ -346,17 +375,17 @@ func _apply(att: Fighter, def: Fighter, at: Dictionary) -> void:
 		def.stun = m["hitstun"]
 		def.crouched = was_crouching
 		def.vx = 0
-		_push(att, def, m["push_hit"], dir)
+		_push(att, def, m["push_hit"], dir, proj)
 	hitstop = maxi(hitstop, int(m["hitstop"]))
 	events.append({"t": "hit", "s": strength, "x": at["x"], "y": at["y"], "slot": def.slot,
-			"combo": def.combo, "attacker": att.slot})
+			"combo": def.combo, "attacker": att.slot, "proj": proj})
 
 
-func _push(att: Fighter, def: Fighter, amount: int, dir: int) -> void:
+func _push(att: Fighter, def: Fighter, amount: int, dir: int, proj := false) -> void:
 	var v := amount * SUB * dir
 	var lim := _limits()
 	var cornered := (dir > 0 and def.x >= lim.y - 2 * SUB) or (dir < 0 and def.x <= lim.x + 2 * SUB)
-	if cornered and not att.airborne():
+	if cornered and not att.airborne() and not proj:
 		att.push_v = -v
 	else:
 		def.push_v = v

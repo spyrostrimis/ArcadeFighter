@@ -94,6 +94,12 @@ func get_input(sim: MatchSim) -> int:
 				if a != 0:
 					return _finish(a)
 
+	# Defence: the opponent's projectile is coming (seen once it has flown `react` frames).
+	# Crouch-guard: it blocks the spit and ducks under it while it still flies high.
+	if op.pj_on and op.pj_t >= react and signi(me.x - op.pj_x) == signi(op.pj_vx) 			and absi(me.x - op.pj_x) / 100 < 120:
+		if _decide("pj%d" % (sim.frame - op.pj_t), block_rate):
+			return _finish(away | Inp.DOWN)
+
 	# Defence: the opponent started an attack (as seen `react` frames ago).
 	if seen_state == Fighter.ATTACK and seen_dist < 130 and not op.is_air_move():
 		if _decide("atk%d" % seen_start, block_rate):
@@ -211,8 +217,12 @@ func _choose_plan(me: Fighter, dist: int) -> void:
 	var r := rng.randf()
 	_hold_down = rng.randf() < guard_rate
 	_wait_back = rng.randf() < 0.5
-	var has_special: bool = not (me.data.get("specials", []) as Array).is_empty()
-	if has_special and dist > 70 and dist < 140 and rng.randf() < special_rate * 0.5:
+	var specials: Array = me.data.get("specials", [])
+	var sp_range: Array = specials[0].get("range", [70, 140]) if not specials.is_empty() else [0, 0]
+	var sp_ready: bool = not specials.is_empty() and not (me.pj_on and me.moves[specials[0]["move"]].has("proj"))
+	# a projectile is the zoner's main tool from range: thrown more often than a rush-in special
+	var sp_rate := special_rate * (1.0 if sp_ready and me.moves[specials[0]["move"]].has("proj") else 0.5)
+	if sp_ready and dist > int(sp_range[0]) and dist < int(sp_range[1]) and rng.randf() < sp_rate:
 		_plan = "special"
 	elif level > 0 and dist > 70 and dist < 125 and rng.randf() < _jump_in_chance():
 		_plan = "jump"   # the opponent keeps blocking / sweeping low and doesn't anti-air: go over the top
@@ -371,7 +381,7 @@ func _can_act(me: Fighter) -> bool:
 func _max_reach(me: Fighter) -> int:
 	var best := 0
 	for k in me.moves:
-		if (k as String).begins_with("j_") or me.moves[k].has("path"):
+		if (k as String).begins_with("j_") or me.moves[k].has("path") or me.moves[k].has("proj"):
 			continue
 		var b: Array = me.moves[k]["box"]
 		best = maxi(best, int(b[0]) + int(b[2]))
@@ -390,8 +400,8 @@ func _attack_for(me: Fighter, dist: int, combo: bool, punish: bool, max_startup 
 	var options: Array = []
 	for k in me.moves:
 		var mname: String = k
-		if mname.begins_with("j_") or me.moves[mname].has("path"):
-			continue
+		if mname.begins_with("j_") or me.moves[mname].has("path") or me.moves[mname].has("proj"):
+			continue   # specials are done by plan ("special"), not as normals
 		var m: Dictionary = me.moves[mname]
 		var b: Array = m["box"]
 		if int(m["startup"]) >= max_startup:

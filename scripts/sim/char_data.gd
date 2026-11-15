@@ -4,6 +4,13 @@ class_name CharData
 ## MURFURRIE 94 px.
 ## Boxes are [x, y, w, h]: x forward from the feet, y up from the feet (or from
 ## the fighter's current height when airborne).
+##
+## Character differences (keep these when tuning):
+##   reach (hit box length)  KROS longest   CED middle      MURFURRIE shortest
+##   punch damage            KROS strongest MURFURRIE mid   CED weakest
+##   kick damage             CED strongest  MURFURRIE mid   KROS weakest
+##   speed (walk, jump)      CED fastest    MURFURRIE mid   KROS slowest
+##   specials                CED Flying Knee, MURFURRIE Spit (projectile that drops halfway)
 
 enum Guard { MID, LOW, HIGH }
 
@@ -41,31 +48,32 @@ static func _ced() -> Dictionary:
 	return {
 		"id": "ced", "name": "CED",
 		"health": 1000,
-		"walk_f": 320, "walk_b": 260,           # subpixels per frame (100 = 1 px)
-		"jump_vy": 1100, "jump_vx": 380, "gravity": 66,
+		"walk_f": 325, "walk_b": 265,           # subpixels per frame (100 = 1 px)
+		"jump_vy": 1100, "jump_vx": 390, "gravity": 66,
 		"push_w": 11,
 		"hurt_stand": [-11, 0, 23, 80], "hurt_crouch": [-13, 0, 26, 50], "hurt_air": [-11, 10, 21, 62],
 		"moves": {
-			"st_lp": _mv(4, 2, 5, 30, 13, 10, [10, 59, 21, 10]),
-			"st_mp": _mv(5, 3, 8, 60, 17, 14, [11, 57, 26, 11]),
-			"st_hp": _mv(7, 4, 15, 100, 22, 17, [11, 52, 29, 16], G.MID, {"step": [2, 8, 220]}),
-			"st_lk": _mv(5, 3, 6, 35, 13, 10, [8, 18, 26, 11]),
-			"st_mk": _mv(6, 4, 10, 65, 17, 14, [10, 36, 31, 13]),
-			"st_hk": _mv(9, 4, 16, 110, 22, 17, [10, 55, 33, 16]),
-			"cr_lp": _mv(4, 2, 5, 25, 12, 10, [10, 34, 21, 8]),
-			"cr_mp": _mv(5, 3, 8, 55, 16, 13, [10, 33, 26, 10]),
-			"cr_hp": _mv(6, 5, 20, 95, 22, 16, [2, 36, 23, 46], G.MID, {"kd": true}),
-			"cr_lk": _mv(5, 3, 6, 25, 12, 10, [8, 0, 26, 8], G.LOW),
-			"cr_mk": _mv(6, 3, 10, 55, 16, 13, [8, 0, 34, 10], G.LOW),
+			# Weakest punches, strongest kicks, medium reach.
+			"st_lp": _mv(4, 2, 5, 28, 13, 10, [10, 59, 21, 10]),
+			"st_mp": _mv(5, 3, 8, 56, 17, 14, [11, 57, 26, 11]),
+			"st_hp": _mv(7, 4, 15, 95, 22, 17, [11, 52, 29, 16], G.MID, {"step": [2, 8, 220]}),
+			"st_lk": _mv(5, 3, 6, 40, 13, 10, [8, 18, 26, 11]),
+			"st_mk": _mv(6, 4, 10, 72, 17, 14, [10, 36, 31, 13]),
+			"st_hk": _mv(9, 4, 16, 118, 22, 17, [10, 55, 33, 16]),
+			"cr_lp": _mv(4, 2, 5, 23, 12, 10, [10, 34, 21, 8]),
+			"cr_mp": _mv(5, 3, 8, 52, 16, 13, [10, 33, 26, 10]),
+			"cr_hp": _mv(6, 5, 20, 90, 22, 16, [2, 36, 23, 46], G.MID, {"kd": true}),
+			"cr_lk": _mv(5, 3, 6, 30, 12, 10, [8, 0, 26, 8], G.LOW),
+			"cr_mk": _mv(6, 3, 10, 62, 16, 13, [8, 0, 34, 10], G.LOW),
 			# Sweep: a few px shorter than the sprite foot so Kros (long reach) outranges it; 7 frames
 			# to come out like st_hp. Win rate is very sensitive to sweep startup and reach.
-			"cr_hk": _mv(7, 3, 23, 90, 22, 16, [8, 0, 54, 10], G.LOW, {"kd": true}),
-			"j_lp": _mv(4, 8, 0, 35, 16, 12, [5, 29, 21, 15], G.HIGH),
-			"j_mp": _mv(5, 6, 0, 65, 19, 15, [5, 24, 24, 16], G.HIGH),
-			"j_hp": _mv(7, 5, 0, 100, 23, 17, [5, 18, 28, 21], G.HIGH),
-			"j_lk": _mv(4, 10, 0, 35, 16, 12, [5, 8, 23, 13], G.HIGH),
-			"j_mk": _mv(5, 6, 0, 65, 19, 15, [7, 5, 28, 15], G.HIGH),
-			"j_hk": _mv(7, 6, 0, 105, 23, 17, [7, 2, 33, 16], G.HIGH),
+			"cr_hk": _mv(7, 3, 23, 98, 22, 16, [8, 0, 54, 10], G.LOW, {"kd": true}),
+			"j_lp": _mv(4, 8, 0, 33, 16, 12, [5, 29, 21, 15], G.HIGH),
+			"j_mp": _mv(5, 6, 0, 62, 19, 15, [5, 24, 24, 16], G.HIGH),
+			"j_hp": _mv(7, 5, 0, 97, 23, 17, [5, 18, 28, 21], G.HIGH),
+			"j_lk": _mv(4, 10, 0, 40, 16, 12, [5, 8, 23, 13], G.HIGH),
+			"j_mk": _mv(5, 6, 0, 72, 19, 15, [7, 5, 28, 15], G.HIGH),
+			"j_hk": _mv(7, 6, 0, 112, 23, 17, [7, 2, 33, 16], G.HIGH),
 			# Flying knee (Mixamo animation): runs in, jumps, knee to the face, then a
 			# hammer punch on the way down (overhead, knocks down). Path from tools/mixamo_move.py.
 			"flying_knee": _mv(20, 26, 21, 90, 24, 18, [7, 3, 28, 49], G.HIGH, {
@@ -76,8 +84,8 @@ static func _ced() -> Dictionary:
 				],
 			}),
 		},
-		# down, down-forward, forward + any punch
-		"specials": [{"motion": "qcf", "buttons": [2, 1, 0], "move": "flying_knee"}],
+		# down, down-forward, forward + any punch. "range": distances (px) the CPU uses it from.
+		"specials": [{"motion": "qcf", "buttons": [2, 1, 0], "move": "flying_knee", "range": [70, 140]}],
 	}
 
 
@@ -86,31 +94,31 @@ static func _kros() -> Dictionary:
 	return {
 		"id": "kros", "name": "KROS",
 		"health": 1000,
-		"walk_f": 290, "walk_b": 240,
-		"jump_vy": 1120, "jump_vx": 360, "gravity": 66,
+		"walk_f": 280, "walk_b": 230,
+		"jump_vy": 1120, "jump_vx": 345, "gravity": 66,
 		"push_w": 12,
 		"hurt_stand": [-13, 0, 26, 90], "hurt_crouch": [-15, 0, 30, 56], "hurt_air": [-12, 11, 25, 69],
 		"moves": {
-			# Longer reach (claws, long legs), a little slower than Ced.
-			"st_lp": _mv(4, 3, 5, 30, 13, 10, [11, 65, 28, 11]),
-			"st_mp": _mv(6, 3, 9, 60, 17, 14, [12, 62, 34, 14]),
+			# Longest reach (claws, long legs), strongest punches, weakest kicks, slowest.
+			"st_lp": _mv(4, 3, 5, 36, 13, 10, [11, 65, 28, 11]),
+			"st_mp": _mv(6, 3, 9, 70, 17, 14, [12, 62, 34, 14]),
 			# Heavies reach down to y 48 so they hit a crouching Ced (crouch hurtbox is 50 tall).
-			"st_hp": _mv(8, 4, 16, 105, 22, 17, [14, 48, 37, 28]),
-			"st_lk": _mv(5, 3, 7, 35, 13, 10, [9, 18, 32, 12]),
-			"st_mk": _mv(7, 4, 11, 65, 17, 14, [11, 41, 39, 14]),
-			"st_hk": _mv(10, 5, 17, 115, 22, 17, [11, 48, 41, 33], G.MID, {"step": [3, 10, 180]}),
-			"cr_lp": _mv(5, 2, 5, 25, 12, 10, [11, 37, 26, 9]),
-			"cr_mp": _mv(6, 3, 9, 55, 16, 13, [11, 34, 34, 12]),
-			"cr_hp": _mv(7, 5, 21, 95, 22, 16, [4, 41, 28, 51], G.MID, {"kd": true}),
-			"cr_lk": _mv(5, 3, 7, 25, 12, 10, [9, 0, 32, 9], G.LOW),
-			"cr_mk": _mv(7, 3, 11, 55, 16, 13, [9, 0, 42, 11], G.LOW),
-			"cr_hk": _mv(7, 4, 23, 95, 22, 16, [9, 0, 58, 11], G.LOW, {"kd": true}),
-			"j_lp": _mv(4, 8, 0, 35, 16, 12, [5, 30, 26, 16], G.HIGH),
-			"j_mp": _mv(6, 6, 0, 65, 19, 15, [5, 25, 30, 19], G.HIGH),
-			"j_hp": _mv(8, 5, 0, 105, 23, 17, [5, 16, 34, 25], G.HIGH),
-			"j_lk": _mv(4, 10, 0, 35, 16, 12, [5, 7, 28, 14], G.HIGH),
-			"j_mk": _mv(6, 6, 0, 65, 19, 15, [7, 4, 34, 16], G.HIGH),
-			"j_hk": _mv(8, 6, 0, 110, 23, 17, [7, 0, 39, 19], G.HIGH),
+			"st_hp": _mv(8, 4, 16, 115, 22, 17, [14, 48, 37, 28]),
+			"st_lk": _mv(5, 3, 7, 30, 13, 10, [9, 18, 32, 12]),
+			"st_mk": _mv(7, 4, 11, 60, 17, 14, [11, 41, 39, 14]),
+			"st_hk": _mv(10, 5, 17, 102, 22, 17, [11, 48, 41, 33], G.MID, {"step": [3, 10, 180]}),
+			"cr_lp": _mv(5, 2, 5, 30, 12, 10, [11, 37, 26, 9]),
+			"cr_mp": _mv(6, 3, 9, 64, 16, 13, [11, 34, 34, 12]),
+			"cr_hp": _mv(7, 5, 21, 105, 22, 16, [4, 41, 28, 51], G.MID, {"kd": true}),
+			"cr_lk": _mv(5, 3, 7, 22, 12, 10, [9, 0, 32, 9], G.LOW),
+			"cr_mk": _mv(7, 3, 11, 50, 16, 13, [9, 0, 42, 11], G.LOW),
+			"cr_hk": _mv(7, 4, 23, 86, 22, 16, [9, 0, 58, 11], G.LOW, {"kd": true}),
+			"j_lp": _mv(4, 8, 0, 40, 16, 12, [5, 30, 26, 16], G.HIGH),
+			"j_mp": _mv(6, 6, 0, 74, 19, 15, [5, 25, 30, 19], G.HIGH),
+			"j_hp": _mv(8, 5, 0, 115, 23, 17, [5, 16, 34, 25], G.HIGH),
+			"j_lk": _mv(4, 10, 0, 32, 16, 12, [5, 7, 28, 14], G.HIGH),
+			"j_mk": _mv(6, 6, 0, 60, 19, 15, [7, 4, 34, 16], G.HIGH),
+			"j_hk": _mv(8, 6, 0, 100, 23, 17, [7, 0, 39, 19], G.HIGH),
 		},
 	}
 
@@ -119,32 +127,40 @@ static func _murfurrie() -> Dictionary:
 	var G := Guard
 	return {
 		"id": "murfurrie", "name": "MURFURRIE",
-		# Angry brawler in a suit: tougher and hits harder than Ced, but slower on his feet
-		# and a frame slower on the heavies. Reach between Ced's and Kros's.
-		"health": 1050,
-		"walk_f": 280, "walk_b": 230,
-		"jump_vy": 1090, "jump_vx": 350, "gravity": 66,
+		"health": 1080,
+		"walk_f": 305, "walk_b": 250,
+		"jump_vy": 1090, "jump_vx": 365, "gravity": 66,
 		"push_w": 12,
 		"hurt_stand": [-12, 0, 24, 83], "hurt_crouch": [-14, 0, 27, 52], "hurt_air": [-11, 10, 23, 64],
 		"moves": {
-			"st_lp": _mv(4, 2, 6, 30, 13, 10, [10, 61, 23, 10]),
-			"st_mp": _mv(6, 3, 8, 65, 17, 14, [11, 58, 28, 12]),
-			# Big straight right at head height, steps in (box on the sprite fist: misses crouchers).
-			"st_hp": _mv(8, 4, 16, 110, 22, 17, [14, 60, 38, 17], G.MID, {"step": [2, 9, 200]}),
-			"st_lk": _mv(5, 3, 7, 35, 13, 10, [8, 18, 28, 11]),
-			"st_mk": _mv(7, 4, 10, 70, 17, 14, [10, 37, 34, 13]),
-			"st_hk": _mv(10, 4, 17, 115, 22, 17, [10, 54, 36, 17]),
-			"cr_lp": _mv(4, 2, 6, 25, 12, 10, [10, 35, 22, 8]),
-			"cr_mp": _mv(6, 3, 8, 60, 16, 13, [10, 34, 28, 10]),
-			"cr_hp": _mv(7, 5, 21, 100, 22, 16, [3, 37, 25, 47], G.MID, {"kd": true}),
-			"cr_lk": _mv(5, 3, 7, 25, 12, 10, [8, 0, 28, 8], G.LOW),
-			"cr_mk": _mv(7, 3, 10, 60, 16, 13, [8, 0, 36, 10], G.LOW),
-			"cr_hk": _mv(8, 3, 24, 95, 22, 16, [8, 0, 55, 10], G.LOW, {"kd": true}),
-			"j_lp": _mv(4, 8, 0, 35, 16, 12, [5, 29, 23, 15], G.HIGH),
-			"j_mp": _mv(5, 6, 0, 70, 19, 15, [5, 24, 26, 17], G.HIGH),
-			"j_hp": _mv(8, 5, 0, 105, 23, 17, [5, 17, 30, 22], G.HIGH),
-			"j_lk": _mv(4, 10, 0, 35, 16, 12, [5, 8, 25, 13], G.HIGH),
-			"j_mk": _mv(6, 6, 0, 70, 19, 15, [7, 5, 30, 15], G.HIGH),
-			"j_hk": _mv(8, 6, 0, 110, 23, 17, [7, 1, 35, 17], G.HIGH),
+			# Angry brawler in a suit: shortest reach, medium punches and kicks, medium speed,
+			# and a spit that makes up for the short arms.
+			"st_lp": _mv(4, 2, 6, 32, 13, 10, [10, 61, 18, 10]),
+			"st_mp": _mv(6, 3, 8, 63, 17, 14, [11, 58, 23, 12]),
+			# Straight right at head height, steps in (misses crouchers).
+			"st_hp": _mv(8, 4, 16, 105, 22, 17, [14, 60, 23, 17], G.MID, {"step": [2, 9, 200]}),
+			"st_lk": _mv(5, 3, 7, 35, 13, 10, [8, 18, 23, 11]),
+			"st_mk": _mv(7, 4, 10, 66, 17, 14, [10, 37, 28, 13]),
+			"st_hk": _mv(10, 4, 17, 110, 22, 17, [10, 54, 30, 17]),
+			"cr_lp": _mv(4, 2, 6, 27, 12, 10, [10, 35, 18, 8]),
+			"cr_mp": _mv(6, 3, 8, 58, 16, 13, [10, 34, 23, 10]),
+			"cr_hp": _mv(7, 5, 21, 98, 22, 16, [3, 37, 20, 47], G.MID, {"kd": true}),
+			"cr_lk": _mv(5, 3, 7, 26, 12, 10, [8, 0, 23, 8], G.LOW),
+			"cr_mk": _mv(7, 3, 10, 56, 16, 13, [8, 0, 31, 10], G.LOW),
+			"cr_hk": _mv(7, 3, 24, 92, 22, 16, [8, 0, 50, 10], G.LOW, {"kd": true}),
+			"j_lp": _mv(4, 8, 0, 37, 16, 12, [5, 29, 19, 15], G.HIGH),
+			"j_mp": _mv(5, 6, 0, 68, 19, 15, [5, 24, 22, 17], G.HIGH),
+			"j_hp": _mv(8, 5, 0, 107, 23, 17, [5, 17, 26, 22], G.HIGH),
+			"j_lk": _mv(4, 10, 0, 36, 16, 12, [5, 8, 21, 13], G.HIGH),
+			"j_mk": _mv(6, 6, 0, 66, 19, 15, [7, 5, 26, 15], G.HIGH),
+			"j_hk": _mv(8, 6, 0, 106, 23, 17, [7, 1, 31, 17], G.HIGH),
+			# Spit: a projectile like a fireball that flies straight from his mouth, then drops
+			# to the floor about halfway across the screen. No hit box of its own ("proj" spawns
+			# on the first active frame). proj: spawn point [x, y] px from the feet, speed vx
+			# (1/100 px per frame), frames it flies level ("float"), then gravity per frame, size.
+			"spit": _mv(13, 4, 26, 60, 18, 14, [0, 0, 0, 0], G.MID, {"proj": {
+				"x": 26, "y": 72, "vx": 420, "float": 20, "grav": 34, "w": 10, "h": 7,
+			}}),
 		},
+		"specials": [{"motion": "qcf", "buttons": [2, 1, 0], "move": "spit", "range": [90, 200]}],
 	}

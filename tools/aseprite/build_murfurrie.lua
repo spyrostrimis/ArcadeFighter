@@ -71,6 +71,21 @@ for _, s in ipairs({
 end
 local hpEnd = n
 
+-- spit (13 startup, 4 active, 26 recovery = 11 steps): rears back (upper body back and up,
+-- breathing in), then lunges the head forward (the wind-up pose) and spits; the projectile
+-- leaves on the first active frame. The lunge isn't the widest frame, so the tag names its
+-- hit frame in its user data ("hit:<frame in tag>"; export.py passes it to the game).
+local spFirst = n + 1
+for _, s in ipairs({ { -1, 0, 1 }, { -2, -1, 2 } }) do   -- dx, dy, steps
+  local f = frame(s[3] / 15)
+  spr:newCel(legs, f, legsImg, stancePos)
+  spr:newCel(upper, f, upperImg, Point(stancePos.x + s[1], stancePos.y + s[2]))
+end
+spr:newCel(upper, frame(3 / 15), windup, windupPos)       -- the spit (hit frame: 3rd of the tag)
+spr:newCel(upper, frame(3 / 15), windup, windupPos)
+spr:newCel(upper, frame(2 / 15), stance, stancePos)
+local spEnd = n
+
 -- walk (walk sheet, like build_ced.lua): 1 stance, 2 back foot up, 3 feet together,
 -- 4 foot up, 5 front foot reaching. Lined up by the head (left edge of its top rows) on the
 -- idle stance's head: the body glides at the sim's walk speed and the legs step under it.
@@ -101,6 +116,9 @@ local wbFirst = walkCycle({ 5, 4, 3, 2, 1 })
 -- tags last: frames added after a tag would stretch it
 spr:newTag(1, idleEnd).name = "idle"
 spr:newTag(first, hpEnd).name = "st_hp"
+local spTag = spr:newTag(spFirst, spEnd)
+spTag.name = "spit"
+spTag.data = "hit:2"
 spr:newTag(wfFirst, wfEnd).name = "walk_f"
 spr:newTag(wbFirst, n).name = "walk_b"
 

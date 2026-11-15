@@ -69,7 +69,7 @@ func _determinism() -> bool:
 ## frames) must be on screen exactly on the active frames, wind-up before, pulled back after.
 func _sprite_timing() -> bool:
 	var ok := true
-	for skin in [["ced", "ced"], ["kros", "kros"], ["kros", "kros_nocape"]]:
+	for skin in [["ced", "ced"], ["kros", "kros"], ["kros", "kros_nocape"], ["murfurrie", "murfurrie"]]:
 		var moves: Dictionary = CharData.get_data(skin[0])["moves"]
 		var ss := SpriteSet.load_for(skin[1])
 		if ss == null:
