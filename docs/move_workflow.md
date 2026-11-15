@@ -58,7 +58,7 @@ Both face **right** in all art (the game mirrors them).
 |---|---|
 | CED | `idle`, `crouch`, `st_hp`, `cr_hk`, `walk_f`, `walk_b`, `flying_knee` (Mixamo, see `docs/character_pipeline.md`) |
 | KROS | `idle`, `st_mk`, `st_hk` (both costumes), `cr_hk`, `walk_f`, `walk_b` (no cape), `cape` |
-| MURFURRIE | `idle`, `st_hp` |
+| MURFURRIE | `idle`, `st_hp`, `walk_f`, `walk_b` |
 
 Update this table when a move is added.
 
