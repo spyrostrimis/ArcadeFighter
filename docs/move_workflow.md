@@ -42,8 +42,8 @@ before doing anything.
 | Standing height (game px) | **92** (= Ryu's scale, see `art/ref/sf_scale.png`) | **97** (a little taller) | **94** |
 | Look | short brown hair, stubble, brown knit sweater, baggy beige trousers, brown lace-up boots | grey curly hair, goatee, black ruffled shirt, black brocade vest with gold watch chain, gold brooch, pendant, black jeans, tall black boots; red/black velvet cape with gold Greek-key trim | short dark hair (faded sides, swept up on top), short dark beard and moustache, angry scowl; light blue suit jacket and trousers over a dark navy button-up shirt, black dress shoes |
 | Style references to attach in ChatGPT | `art/ced/ref/hp_keys.webp` (+ `art/ref/mockup.webp`) | `art/kros/ref/kicks_nocape.webp` (+ `art/kros/ref/ref_nocape.webp`) | `art/ced/ref/hp_keys.webp` for style + the face photo `art/murfurrie/ref/face_photo.png` (local only, git-ignored); once he has a sheet, his own `art/murfurrie/ref/hp_keys.webp` |
-| Aseprite file | `art/ced/ced.aseprite` | `art/kros/kros_nocape.aseprite` (fights in this), `art/kros/kros.aseprite` (cape: round intro only) | `art/murfurrie/murfurrie.aseprite` (not made yet) |
-| Build script | `tools/aseprite/build_ced.lua` | `tools/aseprite/build_kros.lua` (builds both costumes) | `tools/aseprite/build_murfurrie.lua` (to write, copy `build_ced.lua`) |
+| Aseprite file | `art/ced/ced.aseprite` | `art/kros/kros_nocape.aseprite` (fights in this), `art/kros/kros.aseprite` (cape: round intro only) | `art/murfurrie/murfurrie.aseprite` |
+| Build script | `tools/aseprite/build_ced.lua` | `tools/aseprite/build_kros.lua` (builds both costumes) | `tools/aseprite/build_murfurrie.lua` |
 | Sprite set | `assets/fighters/ced/` | `assets/fighters/kros_nocape/` (+ `kros/`) | `assets/fighters/murfurrie/` |
 
 KROS wears the cape only in the round intro (it blinks and fades away), then fights without it.
@@ -58,7 +58,7 @@ Both face **right** in all art (the game mirrors them).
 |---|---|
 | CED | `idle`, `crouch`, `st_hp`, `cr_hk`, `walk_f`, `walk_b`, `flying_knee` (Mixamo, see `docs/character_pipeline.md`) |
 | KROS | `idle`, `st_mk`, `st_hk` (both costumes), `cr_hk`, `walk_f`, `walk_b` (no cape), `cape` |
-| MURFURRIE | none yet: placeholder puppet (light blue suit). First sheet: stance + heavy punch (`idle`, `st_hp`) |
+| MURFURRIE | `idle`, `st_hp` |
 
 Update this table when a move is added.
 
@@ -139,6 +139,9 @@ python tools/aseprite/cutout_keys.py art/ced/ref/st_hk.webp art/ced/keys/st_hk 9
    `art/<char>/keys/<move>_1.png …` plus `<move>_preview.png` (4x). **Read the preview.** If two
    poses were merged into one (they touch), separate them first (e.g. paint a magenta column
    between them in a copy of the sheet, saved as `art/<char>/ref/<move>_split.png`).
+   MURFURRIE: ChatGPT draws his suit lavender, so after cutting out run
+   `python tools/aseprite/hue_shift.py --from 225 --to 265 --shift -30 --sat 1.1 art/murfurrie/keys/<move>_*.png`
+   (light blue suit, navy shirt; skin and shoes untouched). His keys line up by the back foot like CED's.
 4. **Extra frames** if needed: `inbetween_arm.py` (forearm in-between) or `rotate_limb.py`
    (swing a leg/arm; works on the full-resolution sheet before cutting: see its docstring and the
    KROS mid kick in `docs/character_pipeline.md`).

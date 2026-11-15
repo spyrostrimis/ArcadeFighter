@@ -129,8 +129,8 @@ static func _murfurrie() -> Dictionary:
 		"moves": {
 			"st_lp": _mv(4, 2, 6, 30, 13, 10, [10, 61, 23, 10]),
 			"st_mp": _mv(6, 3, 8, 65, 17, 14, [11, 58, 28, 12]),
-			# Big straight right, steps in.
-			"st_hp": _mv(8, 4, 16, 110, 22, 17, [11, 52, 32, 17], G.MID, {"step": [2, 9, 200]}),
+			# Big straight right at head height, steps in (box on the sprite fist: misses crouchers).
+			"st_hp": _mv(8, 4, 16, 110, 22, 17, [14, 60, 38, 17], G.MID, {"step": [2, 9, 200]}),
 			"st_lk": _mv(5, 3, 7, 35, 13, 10, [8, 18, 28, 11]),
 			"st_mk": _mv(7, 4, 10, 70, 17, 14, [10, 37, 34, 13]),
 			"st_hk": _mv(10, 4, 17, 115, 22, 17, [10, 54, 36, 17]),
