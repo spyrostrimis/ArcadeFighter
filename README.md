@@ -55,6 +55,7 @@ tests/nettest.gd            headless rollback sync test (latency, jitter, loss, 
 tests/settings_test.gd      headless settings screen: volume, key rebinding/swap, save + load, match rules
 tests/local2_test.gd        headless local 2 players: title -> both pick -> P2 keys drive fighter 2
 tests/jitter_test.gd        headless check that fighters don't flicker between poses ("trembling")
+tests/cpu_strength.gd       CPU win rate vs scripted "player" tactics (sweep spam, jump-ins, turtling...)
 tests/roomprobe.gd          real signalling + WebRTC connection in one process
 tests/online_pair.sh        two game windows host/join a room and play online matches
 tests/move_shot.gd          in-game screenshots of one move (+ hit boxes), for sprite work
