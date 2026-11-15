@@ -93,9 +93,9 @@ if prefix == "nocape" and app.fs.isFile(dir .. "/cr_hk_2.png") then
   crA, crB = move({ { drop, 2 }, { sweep, 4 }, { back, 3 }, { stance, 1 } })
 end
 
--- walk (no-cape only, keys walk_1..4 from art/kros/ref/walk.webp): 1 stance, 2 back foot
--- under him with the front foot lifting, 3 wide step with the back heel up, 4 back foot
--- passing. Weight-first order: walk_f plays 1 3 4 2, walk_b the reverse (1 2 4 3).
+-- walk (no-cape only, keys walk_1..5 from art/kros/ref/walk.webp), the same step as CED's:
+-- 1 stance, 2 back foot up, 3 feet together, 4 front foot up, 5 front foot reaching.
+-- walk_f plays 1-5, walk_b the same cycle backwards.
 -- The guard is the same in every pose, so the poses are lined up by the middle of the head
 -- (top rows) on the idle stance's head: the body glides at the sim's walk speed and the
 -- legs step under it. Looping animations play one frame per step.
@@ -112,7 +112,7 @@ if prefix == "nocape" and app.fs.isFile(dir .. "/walk_1.png") then
   end
   local stanceHead = stance.pos.x + headMid(stance.img)
   local walk = {}
-  for i = 1, 4 do
+  for i = 1, 5 do
     local img = Image{ fromFile = dir .. "/walk_" .. i .. ".png" }
     walk[i] = { img = img, pos = Point(math.floor(stanceHead - headMid(img) + 0.5), AY - img.height + 1) }
   end
@@ -121,8 +121,8 @@ if prefix == "nocape" and app.fs.isFile(dir .. "/walk_1.png") then
     for _, i in ipairs(order) do seq[#seq + 1] = { walk[i], 1 } end
     return move(seq)
   end
-  wfA, wfB = cycle({ 1, 3, 4, 2 })
-  wbA, wbB = cycle({ 1, 2, 4, 3 })
+  wfA, wfB = cycle({ 1, 2, 3, 4, 5 })
+  wbA, wbB = cycle({ 5, 4, 3, 2, 1 })
 end
 
 -- cape on its own (tools/aseprite/cape_cutout.py): blinks and fades away at round start

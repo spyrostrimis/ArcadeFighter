@@ -109,8 +109,9 @@ weight-first step, 5 poses: 1) stance, 2) weight on the front foot, back foot li
 3) back foot planted under the back shoulder, feet close, weight on it, 4) front foot lifted,
 5) front foot reaching forward, touching down. `walk_f` plays 1-5, `walk_b` the same backwards.
 Walks loop on the clock (one frame per step, durations ignored); line the poses up by the head,
-since the guard doesn't move (see the walk part of `build_ced.lua`). A sheet in another step
-order works too: just pick the play order (KROS's 4-pose sheet plays 1 3 4 2, see `build_kros.lua`).
+since the guard doesn't move (see the walk part of `build_ced.lua`). Stick to this 5-pose step:
+a 4-pose KROS sheet that kept his wide stance (knees out) walked like a crab. For KROS, attach
+CED's `art/ced/ref/walk.webp` too, "only for how the legs move", and ask for knees pointing forward.
 `move_shot.gd` doesn't create its `--out` folder: `mkdir -p` it first.
 
 For crouching moves add "crouched low, about two-thirds of standing height"; for jumping moves
