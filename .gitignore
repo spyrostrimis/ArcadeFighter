@@ -5,3 +5,4 @@ build/
 
 # Godot temp copies of locked DLLs
 *.TMP
+~*.dll
