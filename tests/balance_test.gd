@@ -2,6 +2,7 @@ extends SceneTree
 ## Headless balance check: many seeded CED vs KROS CPU matches, both sides, all levels.
 ## Prints win rates and which moves deal the damage.
 ## Run: godot --headless --path . --script res://tests/balance_test.gd [-- --n=100 --lvl=2]
+## Try a change without editing char_data: -- --p=ced.cr_hk.startup=8 --p=kros.cr_hk.boxw=58
 
 var n := 100
 var levels := [0, 1, 2]
@@ -13,6 +14,14 @@ func _init() -> void:
 			n = int(a.substr(4))
 		elif a.begins_with("--lvl="):
 			levels = [int(a.substr(6))]
+		elif a.begins_with("--p="):   # experiment: --p=ced.cr_hk.startup=8 / boxw=52 / recovery=25
+			var kv := a.substr(4).split("=")
+			var path := kv[0].split(".")
+			var mv: Dictionary = CharData.get_data(path[0])["moves"][path[1]]
+			if path[2] == "boxw":
+				mv["box"][2] = int(kv[1])
+			else:
+				mv[path[2]] = int(kv[1])
 	var ok := true
 	var total_ced := 0
 	var total := 0

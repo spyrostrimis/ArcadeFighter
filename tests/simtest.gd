@@ -64,8 +64,8 @@ func _determinism() -> bool:
 	return end1 == end2
 
 
-## Sprite moves show frame `sf * n / total`: the hit pose (the widest frame) must be on
-## screen by the first active frame, or the hit lands on the wind-up pose.
+## Sprite moves are synced to frame data (SpriteSet.attack_index): the hit pose (the widest
+## frames) must be on screen exactly on the active frames, wind-up before, pulled back after.
 func _sprite_timing() -> bool:
 	var ok := true
 	for skin in [["ced", "ced"], ["kros", "kros"], ["kros", "kros_nocape"]]:
@@ -77,16 +77,19 @@ func _sprite_timing() -> bool:
 			var m: Dictionary = moves[mname]
 			if not ss.has(mname) or m.has("path"):
 				continue
-			var frames: Array = ss.anims[mname]["frames"]
-			var n := frames.size()
-			var hit := 0
-			for i in n:
-				if (frames[i] as Rect2).size.x > (frames[hit] as Rect2).size.x:
-					hit = i
-			var total := int(m["startup"]) + int(m["active"]) + maxi(1, int(m["recovery"]))
-			var shown := ceili(float(hit) * total / n)   # first sim frame showing the hit pose
-			var good := shown <= int(m["startup"])
-			print("sprite timing %s %s: hit pose at frame %d, startup %d %s" % [
-				skin[1], mname, shown, m["startup"], "OK" if good else "LATE"])
+			var s: int = m["startup"]
+			var a: int = m["active"]
+			var total := s + a + maxi(1, int(m["recovery"]))
+			var h := ss.hit_span(mname)
+			var shown := ""
+			var good := h.x >= 1
+			for f in total:
+				var i := ss.attack_index(mname, f, s, a, total)
+				var on_hit := i >= h.x and i <= h.y
+				shown += "#" if on_hit else ("w" if i < h.x else "r")
+				if f < s and on_hit: good = false
+				if f >= s and f < s + a and not on_hit: good = false
+				if f >= s + a + SpriteSet.HIT_HOLD and on_hit: good = false
+			print("sprite timing %s %s %s %s" % [skin[1], mname, shown, "OK" if good else "BAD"])
 			ok = ok and good
 	return ok

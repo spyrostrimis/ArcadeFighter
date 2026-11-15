@@ -144,9 +144,11 @@ python tools/aseprite/cutout_keys.py art/ced/ref/st_hk.webp art/ced/keys/st_hk 9
    - add a sequence of `{pose, steps}` (1 step = 1/15 s = 4 game frames) whose steps add up to
      about total/4,
    - add its tag (the tag name is the move name), next to the other `newTag` lines.
-   - **Timing rule:** the game shows sprite frame `sf * n / total` (n = steps), so the hit pose
-     must already be on screen at the first active frame: steps before the hit pose ×
-     total / n ≤ startup. Otherwise the hit freezes (hitstop) on the wind-up pose.
+   - **Timing:** the game syncs the frames to the frame data (`SpriteSet.attack_index`): frames
+     before the hit pose play during startup, the hit pose (the widest frames) from the first
+     active frame until 2 frames after the last, the remaining frames during recovery. So the
+     hit pose must be the widest frame of the move, with at least one wind-up frame before it.
+     `tests/simtest.gd` prints each move's timeline and fails if this does not hold.
    - KROS: fight moves go in the no-cape file only; guard with `if prefix == "nocape" then … end`.
 6. **Rebuild and export**:
 

@@ -48,5 +48,48 @@ func draw_frame(ci: CanvasItem, anim: String, index: int, modulate := Color.WHIT
 	ci.draw_texture_rect_region(tex, Rect2(-anchor, r.size), r, modulate)
 
 
+## Frames the hit pose stays up after the last active frame (so the impact reads).
+const HIT_HOLD := 2
+
+
+## [first, last] index of an attack's hit pose: its widest (most extended) frames.
+func hit_span(anim: String) -> Vector2i:
+	var a: Dictionary = anims[anim]
+	if not a.has("hit"):
+		var frames: Array = a["frames"]
+		var w := 0.0
+		for r in frames:
+			w = maxf(w, (r as Rect2).size.x)
+		var first := -1
+		var last := -1
+		for i in frames.size():
+			if (frames[i] as Rect2).size.x == w:
+				if first < 0:
+					first = i
+				last = i
+			elif first >= 0:
+				break
+		a["hit"] = Vector2i(first, last)
+	return a["hit"]
+
+
+## Attack frame synced to the move's frame data: the wind-up frames during startup, the hit
+## pose from the first active frame until HIT_HOLD frames after the last, the rest of the
+## frames (pulling back) during recovery. Even spreading over the whole move left the limb
+## out long after the hit and made long moves (sweeps) feel slow.
+func attack_index(anim: String, sf: int, startup: int, active: int, total: int) -> int:
+	var n := frame_count(anim)
+	var h := hit_span(anim)
+	var hold_end := mini(total, startup + active + HIT_HOLD)
+	if sf < startup:
+		return clampi(sf * h.x / maxi(1, startup), 0, maxi(0, h.x - 1))
+	if sf < hold_end:
+		return h.x + (sf - startup) * (h.y - h.x + 1) / maxi(1, hold_end - startup)
+	var rest := n - 1 - h.y
+	if rest <= 0:
+		return h.y
+	return h.y + 1 + mini(rest - 1, (sf - hold_end) * rest / maxi(1, total - hold_end))
+
+
 func frame_count(anim: String) -> int:
 	return (anims[anim]["frames"] as Array).size()

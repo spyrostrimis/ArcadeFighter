@@ -53,8 +53,9 @@ static func _ced() -> Dictionary:
 			"cr_hp": _mv(6, 5, 20, 95, 22, 16, [2, 36, 23, 46], G.MID, {"kd": true}),
 			"cr_lk": _mv(5, 3, 6, 25, 12, 10, [8, 0, 26, 8], G.LOW),
 			"cr_mk": _mv(6, 3, 10, 55, 16, 13, [8, 0, 34, 10], G.LOW),
-			# Sweep: 2 px shorter than the sprite foot, so it does not outrange everything Kros has.
-			"cr_hk": _mv(9, 3, 23, 90, 22, 16, [8, 0, 56, 10], G.LOW, {"kd": true}),
+			# Sweep: a few px shorter than the sprite foot so Kros (long reach) outranges it; 7 frames
+			# to come out like st_hp. Win rate is very sensitive to sweep startup and reach.
+			"cr_hk": _mv(7, 3, 23, 90, 22, 16, [8, 0, 54, 10], G.LOW, {"kd": true}),
 			"j_lp": _mv(4, 8, 0, 35, 16, 12, [5, 29, 21, 15], G.HIGH),
 			"j_mp": _mv(5, 6, 0, 65, 19, 15, [5, 24, 24, 16], G.HIGH),
 			"j_hp": _mv(7, 5, 0, 100, 23, 17, [5, 18, 28, 21], G.HIGH),
@@ -99,7 +100,7 @@ static func _kros() -> Dictionary:
 			"cr_hp": _mv(7, 5, 21, 95, 22, 16, [4, 41, 28, 51], G.MID, {"kd": true}),
 			"cr_lk": _mv(5, 3, 7, 25, 12, 10, [9, 0, 32, 9], G.LOW),
 			"cr_mk": _mv(7, 3, 11, 55, 16, 13, [9, 0, 42, 11], G.LOW),
-			"cr_hk": _mv(9, 4, 23, 95, 22, 16, [9, 0, 52, 11], G.LOW, {"kd": true}),
+			"cr_hk": _mv(7, 4, 23, 95, 22, 16, [9, 0, 58, 11], G.LOW, {"kd": true}),
 			"j_lp": _mv(4, 8, 0, 35, 16, 12, [5, 30, 26, 16], G.HIGH),
 			"j_mp": _mv(6, 6, 0, 65, 19, 15, [5, 25, 30, 19], G.HIGH),
 			"j_hp": _mv(8, 5, 0, 105, 23, 17, [5, 16, 34, 25], G.HIGH),

@@ -103,7 +103,11 @@ func _sprite_anim(fi: Fighter) -> String:
 func _sprite_index(fi: Fighter, anim: String) -> int:
 	var n := _sprites_now().frame_count(anim)
 	if fi.state == Fighter.ATTACK:
-		return clampi(fi.sf * n / fi.move_length(), 0, n - 1)
+		var m := fi.cur_move()
+		if m.has("path"):   # root-motion moves were animated frame by frame along their path
+			return clampi(fi.sf * n / fi.move_length(), 0, n - 1)
+		return _sprites_now().attack_index(anim, fi.sf, int(m["startup"]), int(m["active"]),
+				fi.move_length())
 	if _cape_t() >= 0:
 		return 0   # hold still while the cape fades: it doesn't breathe with the body
 	var clock := sim.frame + slot * 23
