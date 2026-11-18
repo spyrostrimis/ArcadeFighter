@@ -52,21 +52,25 @@ plus `st_mk`/`st_hk` from before.
 
 Both face **right** in all art (the game mirrors them).
 
-### Done so far
+### Done so far: the move tracker
 
-| Character | Moves with sprites |
-|---|---|
-| CED | `idle`, `crouch`, `st_hp`, `cr_hk`, `walk_f`, `walk_b`, `flying_knee` (Mixamo, see `docs/character_pipeline.md`) |
-| KROS | `idle`, `st_mk`, `st_hk` (both costumes), `cr_hk`, `walk_f`, `walk_b` (no cape), `cape` |
-| MURFURRIE | `idle`, `st_hp`, `walk_f`, `walk_b`, `spit` (special, built from the hp keys: rear back + wind-up pose; its tag data `hit:2` names the hit frame) |
+[`docs/moves/index.html`](moves/index.html) lists every character's moves (alphabetically), what
+has sprites, a thumbnail, the input, notes and links to the sheets, with a **Copy session prompt**
+button per move. Done/not done comes from the exported sprite sets, so it is never out of date
+once the page is rebuilt. Notes and status overrides (`wip` / `redo` / `skip`) live in
+`docs/moves/notes.json`; extra sheet links for files with older names go there too (`"sheets"`).
 
-Update this table when a move is added.
+```bash
+python tools/moves_page.py            # rebuild the page data (open docs/moves/index.html)
+python tools/moves_page.py --serve    # same, plus editable notes at http://127.0.0.1:8765/docs/moves/
+```
 
 ---
 
 ## Step 1: before writing the prompt (Claude)
 
-1. Read the move's frame data in `scripts/sim/char_data.gd`: `_mv(startup, active, recovery, …, box)`.
+1. Read the move's note in `docs/moves/notes.json` (key `<char>/<move>`, e.g. `ced/st_lp`): it
+   may say what to redo or keep. Then read the move's frame data in `scripts/sim/char_data.gd`: `_mv(startup, active, recovery, …, box)`.
    Total game frames = startup + active + recovery (60 fps). Sprite frames run at 15 fps, so the
    animation has about **total / 4 steps**.
 2. Decide the key poses, usually 2–4: **wind-up / chamber → hit pose (extended) → (recoil) → back to stance**.
@@ -224,4 +228,6 @@ Save the GIF as `art/<char>/keys/<move>_ingame.gif`.
 - Commit the sheet, keys, `.aseprite`, exported sprite set, build script and any `char_data.gd`
   box change. Message: `<CHAR> <move> from ChatGPT key poses` plus a short body.
 - `git push`.
-- Update the "Done so far" table above in the same commit.
+- Run `python tools/moves_page.py` and commit `docs/moves/` in the same commit. In
+  `notes.json`, drop a `wip`/`redo` status and any note that the move has now dealt with; if the
+  sheet or keys have files not named `<move>*`, add them under `"sheets"`.

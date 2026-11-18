@@ -1,0 +1,122 @@
+{
+  "ced/flying_knee": {
+    "note": "Special (↓↘→ + punch). Made from Mixamo 3D, not ChatGPT: see docs/character_pipeline.md. Re-import after every build_ced.lua rebuild.",
+    "sheets": [
+      "docs/character_pipeline.md",
+      "art/ced/moves/flying_knee.json"
+    ]
+  },
+  "ced/idle": {
+    "sheets": [
+      "art/ced/ref/hp_keys.webp",
+      "art/ced/keys/hp_preview.png"
+    ]
+  },
+  "ced/st_hp": {
+    "sheets": [
+      "art/ced/ref/hp_keys.webp",
+      "art/ced/keys/hp_preview.png"
+    ]
+  },
+  "ced/walk_b": {
+    "sheets": [
+      "art/ced/ref/walk.webp",
+      "art/ced/keys/walk_preview.png"
+    ]
+  },
+  "ced/walk_f": {
+    "sheets": [
+      "art/ced/ref/walk.webp",
+      "art/ced/keys/walk_preview.png"
+    ]
+  },
+  "kros/idle": {
+    "sheets": [
+      "art/kros/ref/ref_nocape.webp",
+      "art/kros/keys/nocape_preview.png"
+    ]
+  },
+  "kros/kros:cape": {
+    "name": "Cape (round intro: blinks and fades away)",
+    "sheets": [
+      "art/kros/ref/ref_cape.webp",
+      "art/kros/keys/cape_preview.png",
+      "art/kros/keys/cape_fade_ingame.gif"
+    ]
+  },
+  "kros/kros:idle": {
+    "name": "Idle with cape (round intro)",
+    "sheets": [
+      "art/kros/ref/ref_cape.webp"
+    ]
+  },
+  "kros/kros:st_hk": {
+    "name": "Standing Heavy Kick, cape costume (not used in fights)",
+    "sheets": [
+      "art/kros/ref/kicks_cape.webp"
+    ]
+  },
+  "kros/kros:st_mk": {
+    "name": "Standing Medium Kick, cape costume (not used in fights)",
+    "sheets": [
+      "art/kros/ref/kicks_cape.webp",
+      "art/kros/ref/kicks_cape_mk.png"
+    ]
+  },
+  "kros/st_hk": {
+    "sheets": [
+      "art/kros/ref/kicks_nocape.webp",
+      "art/kros/keys/nocape_preview.png"
+    ]
+  },
+  "kros/st_mk": {
+    "sheets": [
+      "art/kros/ref/kicks_nocape.webp",
+      "art/kros/ref/kicks_nocape_mk.png",
+      "art/kros/keys/nocape_preview.png"
+    ]
+  },
+  "kros/walk_b": {
+    "sheets": [
+      "art/kros/ref/walk.webp",
+      "art/kros/keys/walk_preview.png"
+    ]
+  },
+  "kros/walk_f": {
+    "sheets": [
+      "art/kros/ref/walk.webp",
+      "art/kros/keys/walk_preview.png"
+    ]
+  },
+  "murfurrie/idle": {
+    "sheets": [
+      "art/murfurrie/ref/hp_keys.webp",
+      "art/murfurrie/keys/hp_preview.png"
+    ]
+  },
+  "murfurrie/spit": {
+    "note": "Special (↓↘→ + punch). Built from the st_hp keys (rear back + wind-up pose), no sheet of its own.",
+    "sheets": [
+      "art/murfurrie/ref/hp_keys.webp",
+      "art/murfurrie/keys/hp_preview.png"
+    ]
+  },
+  "murfurrie/st_hp": {
+    "sheets": [
+      "art/murfurrie/ref/hp_keys.webp",
+      "art/murfurrie/keys/hp_preview.png"
+    ]
+  },
+  "murfurrie/walk_b": {
+    "sheets": [
+      "art/murfurrie/ref/walk.webp",
+      "art/murfurrie/keys/walk_preview.png"
+    ]
+  },
+  "murfurrie/walk_f": {
+    "sheets": [
+      "art/murfurrie/ref/walk.webp",
+      "art/murfurrie/keys/walk_preview.png"
+    ]
+  }
+}
