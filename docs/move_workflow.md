@@ -122,6 +122,12 @@ a 4-pose KROS sheet that kept his wide stance (knees out) walked like a crab. Fo
 CED's `art/ced/ref/walk.webp` too, "only for how the legs move", and ask for knees pointing forward.
 `move_shot.gd` doesn't create its `--out` folder: `mkdir -p` it first.
 
+**Jump** (`jump`, ↑, no button): 5 poses: 1) stance, 2) takeoff crouch, 3) rising, legs
+straight below, 4) knees tucked at the top, 5) falling, legs reaching down. The tag holds 4
+frames (crouch, rise, tuck, fall); `fighter_view.gd` (`_jump_index`) picks one from the jump
+itself (prejump and landing: crouch; then by vertical speed), not the clock. Air poses keep
+their soles on the anchor (the sim's y), the tuck a little above it to cover `hurt_air`.
+
 For crouching moves add "crouched low, about two-thirds of standing height"; for jumping moves
 "in the air, knees tucked", and keep pose 1 as the standing stance (for the scale).
 
@@ -194,7 +200,7 @@ C:/Godot/Godot_v4.7.2-stable_win64.exe --headless --path . --import
 C:/Godot/Godot_v4.7.2-stable_win64.exe --path . --script res://tests/move_shot.gd -- --char=ced --move=st_hk --boxes --out=D:/Games/ArcadeFighter/build/shots/st_hk
 ```
 
-(`--char=kros --vs=ced` for KROS; `--move=walk_f` / `walk_b` walks 48 frames instead.) It walks up to the opponent, does the move, saves a screenshot
+(`--char=kros --vs=ced` for KROS; `--move=walk_f` / `walk_b` walks 48 frames instead; `--move=jump` / `jump_f` / `jump_b` does one jump.) It walks up to the opponent, does the move, saves a screenshot
 every 2 frames and a contact sheet `<char>_<move>_sheet.png`. Hurt boxes are drawn blue and the
 active hit box red. Check:
 

@@ -131,13 +131,29 @@ local wfFirst = walkCycle({ 1, 2, 3, 4, 5 })
 local wfEnd = n
 local wbFirst = walkCycle({ 5, 4, 3, 2, 1 })
 
+-- jump (jump sheet, 92 px stance): 2 takeoff crouch, 3 rising, 4 tuck at the top, 5 falling.
+-- The renderer picks the frame from the jump itself (fighter_view.gd, _jump_index), not the
+-- clock: tag order is crouch (prejump and landing), rise, tuck, fall. The crouch stands on the
+-- floor with its feet centred like cr_hk's crouch; the air poses keep the stance's torso
+-- centre (anchor + 3) and their soles on the anchor (the sim's y), the tuck 14 px above it so
+-- it covers hurt_air. Offsets: left edge -> anchor, sole row of the 122 px cut-out.
+local jumpSeq = {}
+for _, j in ipairs({ { 2, -26, 121, 0 }, { 3, -21, 105, 0 }, { 4, -19, 64, 14 }, { 5, -17, 109, 0 } }) do
+  local img = Image{ fromFile = dir .. "/jump_" .. j[1] .. ".png" }
+  jumpSeq[#jumpSeq + 1] = { img, Point(AX + j[2], AY - j[3] - j[4]) }
+end
+local jumpFirst = n + 1
+for _, s in ipairs(jumpSeq) do spr:newCel(upper, frame(1 / 15), s[1], s[2]) end
+local jumpEnd = n
+
 -- tags last: frames added after a tag would stretch it
 spr:newTag(1, idleEnd).name = "idle"
 spr:newTag(first, hpEnd).name = "st_hp"
 spr:newTag(crouchAt, crouchAt).name = "crouch"
 spr:newTag(crFirst, crEnd).name = "cr_hk"
 spr:newTag(wfFirst, wfEnd).name = "walk_f"
-spr:newTag(wbFirst, n).name = "walk_b"
+spr:newTag(wbFirst, wbFirst + 4).name = "walk_b"
+spr:newTag(jumpFirst, jumpEnd).name = "jump"
 
 -- shared palette, indexed like a real 16-bit sprite
 app.command.ColorQuantization{ ui = false, withAlpha = false, maxColors = 48, useRange = false }

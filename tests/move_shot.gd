@@ -5,7 +5,8 @@ extends SceneTree
 ## are drawn over the sprites, to line the frame data up with the art.
 ## Run (not headless):
 ## godot --path . --script res://tests/move_shot.gd -- --char=ced --move=st_hk --out=DIR [--vs=kros] [--boxes] [--skin=ID]
-## MOVE: st_/cr_/j_ + lp/mp/hp/lk/mk/hk, or walk_f / walk_b (walks 48 frames from the start).
+## MOVE: st_/cr_/j_ + lp/mp/hp/lk/mk/hk, walk_f / walk_b (walks 48 frames from the start),
+## or jump / jump_f / jump_b (one jump from the start, until back in idle).
 ## --skin = sprite set for CHAR (e.g. kros_nocape).
 
 var sim: MatchSim
@@ -55,7 +56,7 @@ func _init() -> void:
 		if a.begins_with("--skin="): skin = a.substr(7)
 		if a == "--boxes": boxes = true
 	sim = MatchSim.new(cid, vs)
-	if not move.begins_with("walk_"):
+	if not _free_move():
 		var m: Dictionary = CharData.get_data(cid)["moves"][move]
 		reach = int(m["box"][0]) + int(m["box"][2]) + 6
 	world = Node2D.new()
@@ -74,6 +75,11 @@ func _init() -> void:
 		world.add_child(b)
 
 
+## Walks and jumps: no button, no opponent to reach; the sheet follows CHAR.
+func _free_move() -> bool:
+	return move.begins_with("walk_") or move.begins_with("jump")
+
+
 func _button() -> int:
 	var i := Inp.BUTTON_NAMES.find(move.substr(move.find("_") + 1))
 	return Inp.BUTTONS[i]
@@ -87,6 +93,11 @@ func _input_p1() -> int:
 		if t0 < 0:
 			t0 = sim.frame
 		return Inp.RIGHT if move == "walk_f" else Inp.LEFT
+	if move.begins_with("jump"):
+		if t0 < 0 and a.state == Fighter.IDLE:
+			t0 = sim.frame
+			return Inp.UP | {"jump": 0, "jump_f": Inp.RIGHT, "jump_b": Inp.LEFT}[move]
+		return 0
 	if t0 < 0:
 		var gap := (sim.f[1].x - a.x) / 100
 		if move.begins_with("j_"):
@@ -109,7 +120,7 @@ func _process(_d: float) -> bool:
 	if pending != "":
 		var img := root.get_texture().get_image()
 		img.save_png(pending)
-		if pending_k % 4 == 0:
+		if (pending_k + (2 if move.begins_with("jump") else 0)) % 4 == 0:   # jumps: show the takeoff
 			img.convert(Image.FORMAT_RGBA8)
 			sheet.append(img)
 			sheet_x.append(pending_x)
@@ -122,6 +133,8 @@ func _process(_d: float) -> bool:
 		var done := sim.f[0].state != Fighter.ATTACK and k > 4
 		if move.begins_with("walk_"):
 			done = k > WALK_FRAMES
+		elif move.begins_with("jump"):
+			done = sim.f[0].state == Fighter.IDLE and k > 8
 		if done or k > 90:
 			_save_sheet()
 			return true
@@ -137,16 +150,18 @@ func _save_sheet() -> void:
 	if sheet.is_empty():
 		return
 	var cx := int((sim.f[0].x + sim.f[1].x) / 200.0 - sim.cam_x)
-	var walking := move.begins_with("walk_")
+	var walking := _free_move()
+	var y0 := 0 if move.begins_with("jump") else 60   # jumps: the whole height
+	var ch := 216 - y0
 	var cw := 120 if walking else 200
 	var x0 := clampi(cx - cw / 2, 0, 384 - cw)
 	var cols := mini(sheet.size(), 6)
 	var rows := ceili(sheet.size() / float(cols))
-	var s := Image.create(cw * cols, 150 * rows, false, Image.FORMAT_RGBA8)
+	var s := Image.create(cw * cols, ch * rows, false, Image.FORMAT_RGBA8)
 	for i in sheet.size():
 		if walking:
 			x0 = clampi(sheet_x[i] - cw / 2, 0, 384 - cw)
-		s.blit_rect(sheet[i], Rect2i(x0, 60, cw, 150), Vector2i((i % cols) * cw, (i / cols) * 150))
+		s.blit_rect(sheet[i], Rect2i(x0, y0, cw, ch), Vector2i((i % cols) * cw, (i / cols) * ch))
 	s.resize(s.get_width() * 2, s.get_height() * 2, Image.INTERPOLATE_NEAREST)
 	s.save_png("%s/%s_%s_sheet.png" % [out, cid, move])
 	print("saved %d frames, sheet %s/%s_%s_sheet.png" % [sheet.size() * 2, out, cid, move])

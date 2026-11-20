@@ -79,7 +79,7 @@ func _sprite_anim(fi: Fighter) -> String:
 		Fighter.PREJUMP, Fighter.AIR:
 			want = "jump"
 		Fighter.LAND:
-			want = "idle"
+			want = "jump" if _sprites_now().has("jump") else "idle"   # lands in the takeoff crouch
 		Fighter.ATTACK:
 			want = fi.move
 		Fighter.HITSTUN:
@@ -108,10 +108,25 @@ func _sprite_index(fi: Fighter, anim: String) -> int:
 			return clampi(fi.sf * n / fi.move_length(), 0, n - 1)
 		return _sprites_now().attack_index(anim, fi.sf, int(m["startup"]), int(m["active"]),
 				fi.move_length())
+	if anim == "jump" and n == 4:
+		return _jump_index(fi)
 	if _cape_t() >= 0:
 		return 0   # hold still while the cape fades: it doesn't breathe with the body
 	var clock := sim.frame + slot * 23
 	return int(clock * _sprites_now().fps / 60.0) % n
+
+
+## Jump frames follow the jump, not the clock: 0 crouch (takeoff and landing), 1 rising,
+## 2 tucked around the top, 3 falling. JUMP_TUCK_VY is in the sim's 1/100 px per frame:
+## with jump_vy ~1100 and gravity 66 the tuck shows for the middle ~13 of ~34 air frames.
+const JUMP_TUCK_VY := 440
+
+func _jump_index(fi: Fighter) -> int:
+	if fi.state != Fighter.AIR:
+		return 0
+	if fi.vy > JUMP_TUCK_VY:
+		return 1
+	return 2 if fi.vy > -JUMP_TUCK_VY else 3
 
 
 func _process(_delta: float) -> void:
