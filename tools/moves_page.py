@@ -30,6 +30,12 @@ CHARS = [
     {"id": "ced", "name": "CED", "set": "ced", "art": "ced"},
     {"id": "kros", "name": "KROS", "set": "kros_nocape", "art": "kros", "extra_sets": ["kros"]},
     {"id": "murfurrie", "name": "MURFURRIE", "set": "murfurrie", "art": "murfurrie"},
+    # SHORTY's buttons are swapped: punch buttons headbutt, kick buttons punch (and hit low).
+    {"id": "shorty", "name": "SHORTY", "set": "shorty", "art": "shorty",
+     "btn_names": {"lp": "Light Headbutt", "mp": "Medium Headbutt", "hp": "Heavy Headbutt",
+                   "lk": "Light Punch (low)", "mk": "Medium Punch (low)", "hk": "Heavy Punch (low)"},
+     "extra_names": {"cr_hp": "rising, anti-air", "cr_hk": "knocks down"},
+     "basics": [("intro", "Intro pose (with the ladies, before round 1)", [])]},
 ]
 
 BTN = {  # suffix -> (name, key, strength, kind)
@@ -149,14 +155,15 @@ def build():
                 "links": [{"href": f, "label": label_for(f)} for f in files],
             }
 
-        groups.append({"name": "Basics", "items": [item(m, n, i) for m, n, i in BASICS]})
+        groups.append({"name": "Basics", "items": [item(m, n, i) for m, n, i in BASICS + c.get("basics", [])]})
         for st, (sname, dirs) in STANCE.items():
             items = []
             for suf, (bname, key, strength, kind) in BTN.items():
                 mid = f"{st}_{suf}"
-                name = f"{sname} {bname}"
-                if mid in EXTRA_NAMES:
-                    name += f" ({EXTRA_NAMES[mid]})"
+                name = f"{sname} {c.get('btn_names', {}).get(suf, bname)}"
+                extra_names = c.get("extra_names", EXTRA_NAMES)
+                if mid in extra_names:
+                    name += f" ({extra_names[mid]})"
                 items.append(item(mid, name, dirs, key, strength, kind, moves_fd.get(mid)))
             groups.append({"name": sname, "items": items})
         sp_items = []

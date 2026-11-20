@@ -54,6 +54,9 @@ func setup(c1: String, c2: String, cpu1: bool, cpu2: bool, level: int, seed_valu
 	bg.texture = load("res://assets/stages/bedroom.png")
 	bg.centered = false
 	world.add_child(bg)
+	var show := Showcase.new()   # SHORTY's intro ladies, behind the fighters
+	show.sim = sim
+	world.add_child(show)
 	var mirror := c1 == c2
 	for i in 2:
 		var v := FighterView.new()

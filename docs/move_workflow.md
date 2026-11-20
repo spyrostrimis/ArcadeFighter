@@ -19,7 +19,7 @@ Claude: follow every step below; don't skip the in-game check.
 ### Keys and move names
 
 | Key | Button | Standing | Crouching (hold ↓) | Jumping |
-|---|---|---|---|---|
+|---|---|---|---|---|---|
 | A | light punch | `st_lp` | `cr_lp` | `j_lp` |
 | S | medium punch | `st_mp` | `cr_mp` | `j_mp` |
 | D | heavy punch | `st_hp` | `cr_hp` (anti-air uppercut) | `j_hp` |
@@ -37,14 +37,14 @@ before doing anything.
 
 ### Characters
 
-| | CED | KROS | MURFURRIE |
+| | CED | KROS | MURFURRIE | SHORTY |
 |---|---|---|---|
-| Standing height (game px) | **92** (= Ryu's scale, see `art/ref/sf_scale.png`) | **97** (a little taller) | **94** |
-| Look | short brown hair, stubble, brown knit sweater, baggy beige trousers, brown lace-up boots | grey curly hair, goatee, black ruffled shirt, black brocade vest with gold watch chain, gold brooch, pendant, black jeans, tall black boots; red/black velvet cape with gold Greek-key trim | short dark hair (faded sides, swept up on top), short dark beard and moustache, angry scowl; light blue suit jacket and trousers over a dark navy button-up shirt, black dress shoes |
-| Style references to attach in ChatGPT | `art/ced/ref/hp_keys.webp` (+ `art/ref/mockup.webp`) | `art/kros/ref/kicks_nocape.webp` (+ `art/kros/ref/ref_nocape.webp`) | `art/ced/ref/hp_keys.webp` for style + the face photo `art/murfurrie/ref/face_photo.png` (local only, git-ignored); once he has a sheet, his own `art/murfurrie/ref/hp_keys.webp` |
-| Aseprite file | `art/ced/ced.aseprite` | `art/kros/kros_nocape.aseprite` (fights in this), `art/kros/kros.aseprite` (cape: round intro only) | `art/murfurrie/murfurrie.aseprite` |
-| Build script | `tools/aseprite/build_ced.lua` | `tools/aseprite/build_kros.lua` (builds both costumes) | `tools/aseprite/build_murfurrie.lua` |
-| Sprite set | `assets/fighters/ced/` | `assets/fighters/kros_nocape/` (+ `kros/`) | `assets/fighters/murfurrie/` |
+| Standing height (game px) | **92** (= Ryu's scale, see `art/ref/sf_scale.png`) | **97** (a little taller) | **94** | **50** (half size; his fight puppet is drawn 47 px) |
+| Look | short brown hair, stubble, brown knit sweater, baggy beige trousers, brown lace-up boots | grey curly hair, goatee, black ruffled shirt, black brocade vest with gold watch chain, gold brooch, pendant, black jeans, tall black boots; red/black velvet cape with gold Greek-key trim | short dark hair (faded sides, swept up on top), short dark beard and moustache, angry scowl; light blue suit jacket and trousers over a dark navy button-up shirt, black dress shoes | slicked-back black hair, short beard, stern face; charcoal pinstripe three-piece suit, white shirt, burgundy tie, pocket square, black dress shoes. **His punch buttons are headbutts and his kick buttons are punches**: name the ChatGPT poses that way (move names stay `st_lp` ... by button) |
+| Style references to attach in ChatGPT | `art/ced/ref/hp_keys.webp` (+ `art/ref/mockup.webp`) | `art/kros/ref/kicks_nocape.webp` (+ `art/kros/ref/ref_nocape.webp`) | `art/ced/ref/hp_keys.webp` for style + the face photo `art/murfurrie/ref/face_photo.png` (local only, git-ignored); once he has a sheet, his own `art/murfurrie/ref/hp_keys.webp` | `art/shorty/ref/intro.webp` (+ `art/ced/ref/hp_keys.webp` for the fighting style) |
+| Aseprite file | `art/ced/ced.aseprite` | `art/kros/kros_nocape.aseprite` (fights in this), `art/kros/kros.aseprite` (cape: round intro only) | `art/murfurrie/murfurrie.aseprite` | `art/shorty/shorty.aseprite` |
+| Build script | `tools/aseprite/build_ced.lua` | `tools/aseprite/build_kros.lua` (builds both costumes) | `tools/aseprite/build_murfurrie.lua` | `tools/aseprite/build_shorty.lua` (anchors by the middle of the feet) |
+| Sprite set | `assets/fighters/ced/` | `assets/fighters/kros_nocape/` (+ `kros/`) | `assets/fighters/murfurrie/` | `assets/fighters/shorty/` |
 
 KROS wears the cape only in the round intro (it blinks and fades away), then fights without it.
 So **KROS's fight moves need only the no-cape sheet**. The cape costume has `idle` and `cape`,

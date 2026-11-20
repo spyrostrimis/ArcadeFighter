@@ -283,16 +283,18 @@ func proj_step(stage_w: int) -> void:
 		pj_on = false
 
 
-## Vertical extent of the push box (bottom, top) in px.
+## Vertical extent of the push box (bottom, top) in px. Heights come from the character's
+## "push_box" [standing, crouching, airborne bottom, airborne top] (SHORTY is half size).
 func push_span() -> Vector2i:
 	var by := y / SUB
+	var pb: Array = data.get("push_box", [90, 60, 18, 74])
 	if state == LIE or (state == KO and not airborne()):
 		return Vector2i(0, 16)
 	if airborne():
-		return Vector2i(by + 18, by + 74)
+		return Vector2i(by + int(pb[2]), by + int(pb[3]))
 	if is_crouching():
-		return Vector2i(0, 60)
-	return Vector2i(0, 90)
+		return Vector2i(0, int(pb[1]))
+	return Vector2i(0, int(pb[0]))
 
 
 # ---------------------------------------------------------------- update

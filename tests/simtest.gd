@@ -6,7 +6,8 @@ extends SceneTree
 func _init() -> void:
 	var ok := true
 	var pairs := [["ced", "kros"], ["kros", "ced"], ["ced", "ced"], ["kros", "kros"],
-		["murfurrie", "ced"], ["kros", "murfurrie"], ["murfurrie", "murfurrie"]]
+		["murfurrie", "ced"], ["kros", "murfurrie"], ["murfurrie", "murfurrie"],
+		["shorty", "ced"], ["kros", "shorty"], ["shorty", "murfurrie"], ["shorty", "shorty"]]
 	for p in pairs:
 		for lvl in 3:
 			var r := _play(p[0], p[1], lvl, 1234 + lvl)

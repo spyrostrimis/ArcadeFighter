@@ -99,11 +99,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		_local2_input(event)
 		return
 	var n := Game.CHARACTERS.size()
-	if event.is_action_pressed("p1_left"):
-		cursor[stage] = (cursor[stage] + n - 1) % n
-		Sfx.play("select")
-	elif event.is_action_pressed("p1_right"):
-		cursor[stage] = (cursor[stage] + 1) % n
+	var mv := _grid_step(event, "p1_")
+	if mv != 0:
+		cursor[stage] = (cursor[stage] + n + mv) % n
 		Sfx.play("select")
 	elif event.is_action_pressed("menu_ok") or event.is_action_pressed("p1_lp") or event.is_action_pressed("p1_lk"):
 		Sfx.play("confirm")
@@ -123,12 +121,39 @@ func _unhandled_input(event: InputEvent) -> void:
 			finished.emit("title")
 
 
+## Full-body preview scale: SHORTY is drawn at his real (half) size next to the others.
+static func _size(c: String) -> float:
+	var k: float = FighterView.PUPPET_SCALE.get(c, 1.0) / FighterView.PUPPET_SCALE["ced"]
+	return k if k < 0.9 else 1.0
+
+
+## Cards per row: one row for up to 3 fighters, a 2-column grid beyond that.
+static func _cols() -> int:
+	var n := Game.CHARACTERS.size()
+	return n if n <= 3 else 2
+
+
+## Cursor move for this input: left/right step one card, up/down one row (in the grid).
+func _grid_step(event: InputEvent, p: String) -> int:
+	if event.is_action_pressed(p + "left"):
+		return -1
+	if event.is_action_pressed(p + "right"):
+		return 1
+	var cols := _cols()
+	if cols < Game.CHARACTERS.size():
+		if event.is_action_pressed(p + "up"):
+			return -cols
+		if event.is_action_pressed(p + "down"):
+			return cols
+	return 0
+
+
 func _local2_input(event: InputEvent) -> void:
 	var n := Game.CHARACTERS.size()
 	for s in 2:
 		var p := "p%d_" % (s + 1)
-		if not picked[s] and (event.is_action_pressed(p + "left") or event.is_action_pressed(p + "right")):
-			var d := -1 if event.is_action_pressed(p + "left") else 1
+		var d := _grid_step(event, p)
+		if not picked[s] and d != 0:
 			cursor[s] = (cursor[s] + n + d) % n
 			Sfx.play("select")
 			return
@@ -160,8 +185,8 @@ func _local2_input(event: InputEvent) -> void:
 
 func _online_input(event: InputEvent) -> void:
 	var n := Game.CHARACTERS.size()
-	if not picked[me] and (event.is_action_pressed("p1_left") or event.is_action_pressed("p1_right")):
-		var d := -1 if event.is_action_pressed("p1_left") else 1
+	var d := _grid_step(event, "p1_")
+	if not picked[me] and d != 0:
 		cursor[me] = (cursor[me] + n + d) % n
 		Sfx.play("select")
 		_send_sel()
@@ -211,7 +236,7 @@ func _draw() -> void:
 	var both := online or local2   # both cursors move at the same time
 	# full-body previews
 	var c0: String = Game.CHARACTERS[cursor[0]]
-	draw_set_transform(Vector2(66, 196), 0.0, Vector2(1, 1))
+	draw_set_transform(Vector2(66, 196), 0.0, Vector2(1, 1) * _size(c0))
 	Puppet.draw(self, c0, _pal(0), Poses.idle(c0, t), sin(t * 0.07) * 2.0)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	PixelFont.draw_centered(self, String(CharData.get_data(c0)["name"]), 66, 48, 1, Hud.NAME_GRAD, Hud.DARK, 0, true)
@@ -220,41 +245,45 @@ func _draw() -> void:
 		PixelFont.draw_centered(self, "READY", 66, 60, 1, Hud.FIGHT_GRAD, Hud.DARK, 0, true)
 	if stage == 1 or both:
 		var c1: String = Game.CHARACTERS[cursor[1]]
-		draw_set_transform(Vector2(318, 196), 0.0, Vector2(-1, 1))
+		draw_set_transform(Vector2(318, 196), 0.0, Vector2(-1, 1) * _size(c1))
 		Puppet.draw(self, c1, _pal(1), Poses.idle(c1, t + 20), sin(t * 0.07) * 2.0)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		PixelFont.draw_centered(self, String(CharData.get_data(c1)["name"]), 318, 48, 1, Hud.NAME_GRAD, Hud.DARK, 0, true)
 		PixelFont.draw_centered(self, tags[1], 318, 30, 2, [Color("a0d0ff"), Color("3068e0")], Hud.DARK, 0, true)
 		if both and picked[1]:
 			PixelFont.draw_centered(self, "READY", 318, 60, 1, Hud.FIGHT_GRAD, Hud.DARK, 0, true)
-	# portrait cards: 64 px wide for two fighters, narrower so three fit between the previews
+	# portrait cards: 64 px wide for two fighters, narrower so three fit between the previews,
+	# and a 2x2 grid of shorter cards for four
 	var n := Game.CHARACTERS.size()
+	var cols := _cols()
 	var cw := 64 if n <= 2 else 58
-	var gap := 8 if n <= 2 else 3
-	var row_x := 192 - (n * cw + (n - 1) * gap) / 2
+	var ch := 74 if n <= 3 else 56
+	var gap := 8 if n <= 2 else (3 if n <= 3 else 6)
+	var row_x := 192 - (cols * cw + (cols - 1) * gap) / 2
 	for i in n:
 		var c: String = Game.CHARACTERS[i]
-		var x0 := row_x + i * (cw + gap)
-		var y0 := 60
+		var x0 := row_x + (i % cols) * (cw + gap)
+		var y0 := 60 if n <= 3 else 52 + (i / cols) * (ch + 14)
 		var pal: Dictionary = pals[c]
-		draw_rect(Rect2(x0 - 1, y0 - 1, cw + 2, 76), Color("0a0a20"))
-		draw_rect(Rect2(x0, y0, cw, 74), Color("e0a040"))
-		draw_rect(Rect2(x0 + 2, y0 + 2, cw - 4, 70), Color("7a1c18") if i == 0 else Color("2a1840"))
-		draw_rect(Rect2(x0 + 2, y0 + 50, cw - 4, 12), pal["top"])
-		Puppet.draw_portrait(self, c, pal, Vector2(x0 + cw / 2, y0 + 30), 2.4 if n <= 2 else 2.2, i == n - 1, false)
-		draw_rect(Rect2(x0 + 2, y0 + 62, cw - 4, 10), Color("0a0a20"))
+		draw_rect(Rect2(x0 - 1, y0 - 1, cw + 2, ch + 2), Color("0a0a20"))
+		draw_rect(Rect2(x0, y0, cw, ch), Color("e0a040"))
+		draw_rect(Rect2(x0 + 2, y0 + 2, cw - 4, ch - 4), Color("7a1c18") if i == 0 else Color("2a1840"))
+		draw_rect(Rect2(x0 + 2, y0 + ch - 24, cw - 4, 12), pal["top"])
+		Puppet.draw_portrait(self, c, pal, Vector2(x0 + cw / 2, y0 + (ch - 24) / 2 + 5),
+				2.4 if n <= 2 else (2.2 if n <= 3 else 1.8), i % cols == cols - 1, false)
+		draw_rect(Rect2(x0 + 2, y0 + ch - 12, cw - 4, 10), Color("0a0a20"))
 		var nm := String(CharData.get_data(c)["name"])
-		PixelFont.draw_centered(self, nm, x0 + cw / 2, y0 + 64, 1, Hud.NAME_GRAD, null, 0,
+		PixelFont.draw_centered(self, nm, x0 + cw / 2, y0 + ch - 10, 1, Hud.NAME_GRAD, null, 0,
 				PixelFont.width(nm, 1, true) <= cw - 4)
 		# cursors
 		var blink := (t / 8) % 2 == 0
 		var show0: bool = (stage == 0 and blink or stage == 1) if not both else (blink or picked[0])
 		var show1: bool = (stage == 1 and blink) if not both else (blink or picked[1])
 		if cursor[0] == i and show0:
-			draw_rect(Rect2(x0 - 3, y0 - 3, cw + 6, 80), Color("ff3020"), false, 2.0)
+			draw_rect(Rect2(x0 - 3, y0 - 3, cw + 6, ch + 6), Color("ff3020"), false, 2.0)
 			PixelFont.draw(self, tags[0], Vector2(x0 - 2, y0 - 12), 1, [Color("ff9070"), Color("e83818")], Hud.DARK, 0, true)
 		if (stage == 1 or both) and cursor[1] == i and show1:
-			draw_rect(Rect2(x0 - 5, y0 - 5, cw + 10, 84), Color("40a0ff"), false, 2.0)
+			draw_rect(Rect2(x0 - 5, y0 - 5, cw + 10, ch + 10), Color("40a0ff"), false, 2.0)
 			var tw := PixelFont.width(tags[1], 1, true)
 			PixelFont.draw(self, tags[1], Vector2(x0 + cw + 2 - tw, y0 - 12), 1, [Color("a0d0ff"), Color("3068e0")], Hud.DARK, 0, true)
 	var help := "LEFT/RIGHT CHOOSE   ENTER OR A CONFIRM   ESC BACK"
@@ -271,9 +300,9 @@ func _draw_vs() -> void:
 	var c0: String = Game.CHARACTERS[cursor[0]]
 	var c1: String = Game.CHARACTERS[cursor[1]]
 	var slide := clampf(vs_t / 20.0, 0.0, 1.0)
-	draw_set_transform(Vector2(lerpf(-60, 96, slide), 196), 0.0, Vector2(1, 1))
+	draw_set_transform(Vector2(lerpf(-60, 96, slide), 196), 0.0, Vector2(1, 1) * _size(c0))
 	Puppet.draw(self, c0, _pal(0), Poses.idle(c0, t), 0.0)
-	draw_set_transform(Vector2(lerpf(444, 288, slide), 196), 0.0, Vector2(-1, 1))
+	draw_set_transform(Vector2(lerpf(444, 288, slide), 196), 0.0, Vector2(-1, 1) * _size(c1))
 	Puppet.draw(self, c1, _pal(1), Poses.idle(c1, t + 20), sin(t * 0.07) * 2.0)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	PixelFont.draw_centered(self, String(CharData.get_data(c0)["name"]), 96, 200, 2, Hud.NAME_GRAD, Hud.DARK, 1, true)

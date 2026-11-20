@@ -1,6 +1,6 @@
 # Arcade Fighter
 
-Retro 16-bit pixel-art fighting game in Godot 4.7: **CED, KROS and MURFURRIE** in the bedroom stage.
+Retro 16-bit pixel-art fighting game in Godot 4.7: **CED, KROS, MURFURRIE and SHORTY** in the bedroom stage.
 
 ## Play
 
@@ -42,6 +42,13 @@ under it while it flies high, or block it. One on screen at a time.
 | CED | medium | weakest | strongest | fastest |
 | KROS | longest | strongest | weakest | slowest |
 | MURFURRIE | shortest | medium | medium | medium (a bit more health) |
+
+**SHORTY** is half the size of the others: many high attacks pass over his head. He is the
+fastest fighter but takes 10% more damage from every hit. His buttons are swapped: the
+**punch buttons are headbutts** (slow, heavy, they lunge forward) and the **kick buttons are
+punches** (very quick and weak, they hit low: block them crouching; the heavy ones dart
+forward). Round 1 of his matches opens with his intro: he poses with two ladies, who walk
+off before the round is announced.
 
 ## Layout
 

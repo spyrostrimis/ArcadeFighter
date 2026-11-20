@@ -187,7 +187,7 @@ func _banner() -> void:
 	var cx := 192.0
 	var y := 78.0
 	var ph := sim.phase
-	var pf := sim.pf
+	var pf := sim.intro_pf() if ph == MatchSim.INTRO else sim.pf
 	match ph:
 		MatchSim.INTRO:
 			if pf >= 8 and pf < 70:
