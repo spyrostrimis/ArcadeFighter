@@ -1,7 +1,7 @@
 class_name CharData
 ## Per-character stats and frame data. All distances in pixels, times in frames (60/s).
 ## Sprite heights (Street Fighter scale on a 216 px screen): CED 92 px, KROS 97 px,
-## MURFURRIE 94 px.
+## MURFURRIE 94 px, SHORTY 50 px.
 ## Boxes are [x, y, w, h]: x forward from the feet, y up from the feet (or from
 ## the fighter's current height when airborne).
 ##
@@ -11,6 +11,8 @@ class_name CharData
 ##   kick damage             CED strongest  MURFURRIE mid   KROS weakest
 ##   speed (walk, jump)      CED fastest    MURFURRIE mid   KROS slowest
 ##   specials                CED Flying Knee, MURFURRIE Spit (projectile that drops halfway)
+##   SHORTY: half size (50 px), fastest, takes 110% damage; punch buttons = slow heavy
+##   headbutts, kick buttons = quick weak punches that hit low (see _shorty()).
 
 enum Guard { MID, LOW, HIGH }
 
@@ -22,6 +24,7 @@ static func get_data(id: String) -> Dictionary:
 		match id:
 			"ced": _cache[id] = _ced()
 			"murfurrie": _cache[id] = _murfurrie()
+			"shorty": _cache[id] = _shorty()
 			_: _cache[id] = _kros()
 	return _cache[id]
 
@@ -163,4 +166,49 @@ static func _murfurrie() -> Dictionary:
 			}}),
 		},
 		"specials": [{"motion": "qcf", "buttons": [2, 1, 0], "move": "spit", "range": [90, 200]}],
+	}
+
+
+static func _shorty() -> Dictionary:
+	var G := Guard
+	return {
+		"id": "shorty", "name": "SHORTY",
+		# About half the others' height (50 px). The fastest fighter, but he takes extra damage.
+		# His buttons are swapped: the PUNCH buttons are headbutts (slow, heavy, blocked like
+		# punches) and the KICK buttons are his punches (very quick, weak, hit low like kicks:
+		# block them crouching). Moves keep their button names (st_lp = standing light headbutt).
+		"health": 1000,
+		"dmg_taken": 110,                      # percent of the damage other fighters take
+		"walk_f": 355, "walk_b": 295,
+		"jump_vy": 1000, "jump_vx": 410, "gravity": 66,
+		"push_w": 8,
+		"push_box": [48, 32, 8, 42],           # push heights: standing, crouching, airborne bottom/top
+		"hurt_stand": [-8, 0, 16, 48], "hurt_crouch": [-9, 0, 18, 32], "hurt_air": [-8, 6, 16, 36],
+		"showcase": true,                      # round 1 starts with his intro (the two ladies)
+		"moves": {
+			# Headbutts (punch buttons): slow, heavy, at his head height (the opponent's belly).
+			# Each lunges forward (he is tiny: it's how he gets in).
+			"st_lp": _mv(8, 3, 12, 60, 16, 13, [8, 38, 16, 12], G.MID, {"step": [2, 8, 250]}),
+			"st_mp": _mv(12, 4, 16, 95, 22, 17, [9, 36, 18, 14], G.MID, {"step": [3, 12, 300]}),
+			# Slow to come out, but he recovers fast enough that a blocked one is only just unsafe.
+			"st_hp": _mv(16, 5, 15, 140, 26, 18, [10, 34, 22, 16], G.MID, {"step": [4, 17, 340]}),
+			"cr_lp": _mv(8, 3, 12, 55, 16, 13, [8, 22, 16, 12], G.MID, {"step": [2, 8, 220]}),
+			"cr_mp": _mv(12, 4, 13, 90, 20, 16, [8, 20, 18, 14], G.MID, {"step": [3, 12, 260]}),
+			# Rising headbutt: the anti-air, knocks down.
+			"cr_hp": _mv(14, 5, 24, 130, 24, 18, [2, 26, 18, 30], G.MID, {"kd": true}),
+			"j_lp": _mv(6, 8, 0, 60, 18, 14, [4, 10, 16, 14], G.HIGH),
+			"j_mp": _mv(9, 6, 0, 95, 21, 16, [4, 6, 18, 16], G.HIGH),
+			"j_hp": _mv(12, 6, 0, 140, 25, 18, [4, 2, 22, 18], G.HIGH),
+			# Punches (kick buttons): very quick and weak, at the opponent's knees: block low.
+			"st_lk": _mv(3, 2, 4, 20, 11, 9, [8, 22, 20, 8], G.LOW),
+			"st_mk": _mv(4, 2, 6, 32, 13, 10, [8, 20, 24, 9], G.LOW),
+			# heavy punches dart forward: how he gets back at a long sweep
+			"st_hk": _mv(5, 3, 8, 45, 15, 12, [9, 20, 28, 10], G.LOW, {"step": [1, 6, 500]}),
+			"cr_lk": _mv(3, 2, 4, 18, 10, 8, [8, 4, 20, 8], G.LOW),
+			"cr_mk": _mv(4, 2, 6, 28, 12, 10, [8, 3, 24, 9], G.LOW),
+			"cr_hk": _mv(5, 3, 12, 42, 16, 12, [8, 2, 30, 10], G.LOW, {"kd": true, "step": [1, 6, 550]}),
+			"j_lk": _mv(3, 8, 0, 22, 13, 10, [5, 10, 18, 10], G.HIGH),
+			"j_mk": _mv(4, 6, 0, 32, 15, 12, [5, 8, 21, 11], G.HIGH),
+			"j_hk": _mv(5, 6, 0, 45, 17, 13, [5, 6, 24, 12], G.HIGH),
+		},
 	}

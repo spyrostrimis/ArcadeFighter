@@ -1,0 +1,18 @@
+{
+ "fps": 15.0,
+ "source": "art/shorty/shorty.aseprite",
+ "animations": {
+  "intro": {
+   "frames": [
+    [
+     0,
+     0,
+     24,
+     50,
+     12,
+     49
+    ]
+   ]
+  }
+ }
+}

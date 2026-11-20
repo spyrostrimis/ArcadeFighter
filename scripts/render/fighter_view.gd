@@ -20,7 +20,8 @@ const CAPED := {"kros": "kros_nocape"}   # fighter id -> its sprite set once the
 const FADE_AT := 24     # intro frame the cape starts blinking ("ROUND n" is on screen 8-70)
 const FADE_LEN := 44    # frames until it is gone
 ## Placeholder puppet size -> sprite size (CED 113 -> 92 px, KROS 110 -> 97 px).
-const PUPPET_SCALE := {"ced": 92.0 / 113.0, "kros": 97.0 / 110.0, "murfurrie": 94.0 / 113.0}
+const PUPPET_SCALE := {"ced": 92.0 / 113.0, "kros": 97.0 / 110.0, "murfurrie": 94.0 / 113.0,
+		"shorty": 47.0 / 95.6}   # half the others' fighting height (his puppet stands 95.6 tall)
 
 
 ## `skin` picks another sprite set for the same fighter (e.g. "kros_nocape": KROS without
@@ -43,13 +44,13 @@ func setup(p_sim: MatchSim, p_slot: int, alt: bool, skin := "") -> void:
 func _cape_t() -> int:
 	if cape_sprites == null or sim.phase != MatchSim.INTRO:
 		return -1
-	var k := sim.pf - FADE_AT
+	var k := sim.intro_pf() - FADE_AT
 	return k if k < FADE_LEN else -1
 
 
 ## The sprite set to draw now: the caped one during the round intro until the cape fades.
 func _sprites_now() -> SpriteSet:
-	if cape_sprites != null and sim.phase == MatchSim.INTRO and sim.pf < FADE_AT:
+	if cape_sprites != null and sim.phase == MatchSim.INTRO and sim.intro_pf() < FADE_AT:
 		return cape_sprites
 	return sprites
 
@@ -65,6 +66,8 @@ func _draw_fading_cape(k: int) -> void:
 
 ## Which sprite animation shows this state ("" = none yet, use the placeholder puppet).
 func _sprite_anim(fi: Fighter) -> String:
+	if sim.in_showcase() and fi.data.has("showcase") and _sprites_now().has("intro"):
+		return "intro"   # posing with the ladies
 	var want := ""
 	match fi.state:
 		Fighter.IDLE:
@@ -140,6 +143,8 @@ func _draw() -> void:
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			return
 	var pose := Poses.for_fighter(fi, t)
+	if sim.in_showcase() and fi.data.has("showcase"):
+		pose = Poses.showcase(fi.cid, t)
 	var sway := sin(t * 0.07) * 2.0 + clampf(fi.vx * fi.facing / 60.0, -4.0, 6.0)
 	if fi.state == Fighter.WIN:
 		sway += 6.0 + sin(t * 0.15) * 3.0

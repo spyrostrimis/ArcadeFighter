@@ -2181,6 +2181,638 @@ window.MOVES = {
      ]
     }
    ]
+  },
+  {
+   "id": "shorty",
+   "name": "SHORTY",
+   "groups": [
+    {
+     "name": "Basics",
+     "items": [
+      {
+       "id": "idle",
+       "name": "Idle (fighting stance)",
+       "input": [],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "walk_f",
+       "name": "Walk forward",
+       "input": [
+        "fwd"
+       ],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "walk_b",
+       "name": "Walk back",
+       "input": [
+        "back"
+       ],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "crouch",
+       "name": "Crouch",
+       "input": [
+        "down"
+       ],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "jump",
+       "name": "Jump",
+       "input": [
+        "up"
+       ],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "intro",
+       "name": "Intro pose (with the ladies, before round 1)",
+       "input": [],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": true,
+       "status": "",
+       "note": "",
+       "thumb": "assets/fighters/shorty/preview_intro.gif",
+       "links": [
+        {
+         "href": "art/shorty/ref/intro.webp",
+         "label": "ChatGPT sheet \u00b7 intro.webp"
+        },
+        {
+         "href": "art/shorty/keys/intro_preview.png",
+         "label": "Cut-out keys"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "Standing",
+     "items": [
+      {
+       "id": "st_lp",
+       "name": "Standing Light Headbutt",
+       "input": [],
+       "key": "A",
+       "strength": "L",
+       "kind": "punch",
+       "fd": [
+        8,
+        3,
+        12,
+        60
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "st_mp",
+       "name": "Standing Medium Headbutt",
+       "input": [],
+       "key": "S",
+       "strength": "M",
+       "kind": "punch",
+       "fd": [
+        12,
+        4,
+        16,
+        95
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "st_hp",
+       "name": "Standing Heavy Headbutt",
+       "input": [],
+       "key": "D",
+       "strength": "H",
+       "kind": "punch",
+       "fd": [
+        16,
+        5,
+        15,
+        140
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "st_lk",
+       "name": "Standing Light Punch (low)",
+       "input": [],
+       "key": "Z",
+       "strength": "L",
+       "kind": "kick",
+       "fd": [
+        3,
+        2,
+        4,
+        20
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "st_mk",
+       "name": "Standing Medium Punch (low)",
+       "input": [],
+       "key": "X",
+       "strength": "M",
+       "kind": "kick",
+       "fd": [
+        4,
+        2,
+        6,
+        32
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "st_hk",
+       "name": "Standing Heavy Punch (low)",
+       "input": [],
+       "key": "C",
+       "strength": "H",
+       "kind": "kick",
+       "fd": [
+        5,
+        3,
+        8,
+        45
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      }
+     ]
+    },
+    {
+     "name": "Crouching",
+     "items": [
+      {
+       "id": "cr_lp",
+       "name": "Crouching Light Headbutt",
+       "input": [
+        "down"
+       ],
+       "key": "A",
+       "strength": "L",
+       "kind": "punch",
+       "fd": [
+        8,
+        3,
+        12,
+        55
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "cr_mp",
+       "name": "Crouching Medium Headbutt",
+       "input": [
+        "down"
+       ],
+       "key": "S",
+       "strength": "M",
+       "kind": "punch",
+       "fd": [
+        12,
+        4,
+        13,
+        90
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "cr_hp",
+       "name": "Crouching Heavy Headbutt (rising, anti-air)",
+       "input": [
+        "down"
+       ],
+       "key": "D",
+       "strength": "H",
+       "kind": "punch",
+       "fd": [
+        14,
+        5,
+        24,
+        130
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "cr_lk",
+       "name": "Crouching Light Punch (low)",
+       "input": [
+        "down"
+       ],
+       "key": "Z",
+       "strength": "L",
+       "kind": "kick",
+       "fd": [
+        3,
+        2,
+        4,
+        18
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "cr_mk",
+       "name": "Crouching Medium Punch (low)",
+       "input": [
+        "down"
+       ],
+       "key": "X",
+       "strength": "M",
+       "kind": "kick",
+       "fd": [
+        4,
+        2,
+        6,
+        28
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "cr_hk",
+       "name": "Crouching Heavy Punch (low) (knocks down)",
+       "input": [
+        "down"
+       ],
+       "key": "C",
+       "strength": "H",
+       "kind": "kick",
+       "fd": [
+        5,
+        3,
+        12,
+        42
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      }
+     ]
+    },
+    {
+     "name": "Jumping",
+     "items": [
+      {
+       "id": "j_lp",
+       "name": "Jumping Light Headbutt",
+       "input": [
+        "up"
+       ],
+       "key": "A",
+       "strength": "L",
+       "kind": "punch",
+       "fd": [
+        6,
+        8,
+        0,
+        60
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "j_mp",
+       "name": "Jumping Medium Headbutt",
+       "input": [
+        "up"
+       ],
+       "key": "S",
+       "strength": "M",
+       "kind": "punch",
+       "fd": [
+        9,
+        6,
+        0,
+        95
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "j_hp",
+       "name": "Jumping Heavy Headbutt",
+       "input": [
+        "up"
+       ],
+       "key": "D",
+       "strength": "H",
+       "kind": "punch",
+       "fd": [
+        12,
+        6,
+        0,
+        140
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "j_lk",
+       "name": "Jumping Light Punch (low)",
+       "input": [
+        "up"
+       ],
+       "key": "Z",
+       "strength": "L",
+       "kind": "kick",
+       "fd": [
+        3,
+        8,
+        0,
+        22
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "j_mk",
+       "name": "Jumping Medium Punch (low)",
+       "input": [
+        "up"
+       ],
+       "key": "X",
+       "strength": "M",
+       "kind": "kick",
+       "fd": [
+        4,
+        6,
+        0,
+        32
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "j_hk",
+       "name": "Jumping Heavy Punch (low)",
+       "input": [
+        "up"
+       ],
+       "key": "C",
+       "strength": "H",
+       "kind": "kick",
+       "fd": [
+        5,
+        6,
+        0,
+        45
+       ],
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      }
+     ]
+    },
+    {
+     "name": "Specials",
+     "items": []
+    },
+    {
+     "name": "Reactions",
+     "items": [
+      {
+       "id": "block",
+       "name": "Block",
+       "input": [
+        "back"
+       ],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "cr_block",
+       "name": "Crouch block",
+       "input": [
+        "downback"
+       ],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "hit_high",
+       "name": "Hit (high)",
+       "input": [],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "hit_low",
+       "name": "Hit (low)",
+       "input": [],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "knockdown",
+       "name": "Knockdown",
+       "input": [],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "getup",
+       "name": "Get up",
+       "input": [],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "ko",
+       "name": "KO",
+       "input": [],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "win",
+       "name": "Win pose",
+       "input": [],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      },
+      {
+       "id": "lose",
+       "name": "Lose",
+       "input": [],
+       "key": null,
+       "strength": null,
+       "kind": null,
+       "fd": null,
+       "done": false,
+       "status": "",
+       "note": "",
+       "thumb": "",
+       "links": []
+      }
+     ]
+    }
+   ]
   }
  ]
 };

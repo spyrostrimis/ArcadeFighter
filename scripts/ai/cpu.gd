@@ -342,8 +342,21 @@ func _aa_connects(me: Fighter, op: Fighter) -> bool:
 
 ## Would this move's hit box touch the opponent's hurt boxes where they stand now?
 ## (A ground opponent; the CPU judges range like a player who knows the move.)
+## How far (px) a lunge carries me forward before it hits (SHORTY's headbutts and darting
+## punches). Small step-ins (CED's st_hp, KROS's st_hk: 11-12 px) are left out: the reach
+## checks already allow for them, and counting them made CED win 67% against KROS.
+static func _lunge(m: Dictionary) -> int:
+	var st: Array = m.get("step", [])
+	if st.size() != 3:
+		return 0
+	var frames := mini(int(st[1]), int(m["startup"])) - int(st[0])
+	var px := maxi(0, frames) * int(st[2]) / 100
+	return px if px >= 15 else 0
+
+
 func _connects(me: Fighter, op: Fighter, m: Dictionary) -> bool:
 	var hb: Rect2i = me.box_to_world(m["box"])
+	hb.position.x += _lunge(m) * me.facing
 	hb = hb.grow_individual(0, 0, -1, 0) if me.facing == 1 else hb.grow_individual(-1, 0, 0, 0)
 	var hu: Array = op.data["hurt_crouch"] if op.is_crouching() else op.data["hurt_stand"]
 	var bx: int = hu[0]
@@ -384,7 +397,7 @@ func _max_reach(me: Fighter) -> int:
 		if (k as String).begins_with("j_") or me.moves[k].has("path") or me.moves[k].has("proj"):
 			continue
 		var b: Array = me.moves[k]["box"]
-		best = maxi(best, int(b[0]) + int(b[2]))
+		best = maxi(best, int(b[0]) + int(b[2]) + _lunge(me.moves[k]))
 	return best + 10
 
 
@@ -419,6 +432,8 @@ func _attack_for(me: Fighter, dist: int, combo: bool, punish: bool, max_startup 
 			w = 0.5 if strength == 0 else (1.0 if strength == 1 else 2.5)
 		elif strength == 2:
 			w = 0.6 + level * 0.3
+		if not punish and not combo and int(m["startup"]) >= 12:
+			w *= 0.4   # slow moves (SHORTY's headbutts) get blocked and punished in neutral
 		if mname == "cr_hk" and not combo:
 			# the sweep is a great punish but unsafe when blocked: less of it vs a blocker
 			w *= 1.4 if punish else (1.0 if _blocked < 2 else 0.3)

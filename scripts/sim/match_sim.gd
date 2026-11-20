@@ -12,10 +12,13 @@ const EDGE := 14
 const ROUND_TIME := 99
 const START_GAP := 72
 const WINS_NEEDED := 2
+## Round 1 of a match with a "showcase" fighter (SHORTY) starts with his intro: he poses with
+## two ladies, who walk off before the round is announced. The normal intro follows.
+const SHOWCASE_LEN := 160
 
 const SAVE_FIELDS := [
 	"phase", "pf", "round_num", "timer", "timer_frames", "hitstop", "frame",
-	"cam_x", "round_winner", "match_winner", "time_over", "ko_happened",
+	"cam_x", "round_winner", "match_winner", "time_over", "ko_happened", "intro_extra",
 ]
 
 var f: Array[Fighter] = []
@@ -31,6 +34,7 @@ var round_winner := -1      # 0/1 = player slot, 2 = draw
 var match_winner := -1      # 0/1, 2 = draw
 var time_over := false
 var ko_happened := false
+var intro_extra := 0        # frames of showcase before the normal intro (round 1 only)
 
 var events: Array = []      # this frame's events for audio/visuals (not saved)
 
@@ -71,7 +75,23 @@ func start_round() -> void:
 	time_over = false
 	ko_happened = false
 	_update_cam()
-	events.append({"t": "round", "n": round_num})
+	intro_extra = 0
+	if round_num == 1 and (f[0].data.has("showcase") or f[1].data.has("showcase")):
+		intro_extra = SHOWCASE_LEN
+		events.append({"t": "showcase"})
+	else:
+		events.append({"t": "round", "n": round_num})
+
+
+## Frames into the normal round intro ("ROUND n" at 8, "FIGHT!" at 70); negative during a
+## showcase.
+func intro_pf() -> int:
+	return pf - intro_extra
+
+
+## True while a showcase (SHORTY's intro) is playing.
+func in_showcase() -> bool:
+	return phase == INTRO and pf < intro_extra
 
 
 func save_state() -> Array:
@@ -96,10 +116,13 @@ func step(i0: int, i1: int) -> void:
 	pf += 1
 	match phase:
 		INTRO:
-			if pf == 70:
+			var ip := intro_pf()
+			if ip == 0 and intro_extra > 0:
+				events.append({"t": "round", "n": round_num})   # the ladies have left
+			if ip == 70:
 				events.append({"t": "fight"})
 			_tick(0, 0)
-			if pf >= 100:
+			if ip >= 100:
 				phase = FIGHT
 				pf = 0
 		FIGHT:
@@ -340,6 +363,7 @@ func _apply(att: Fighter, def: Fighter, at: Dictionary, m := {}, proj := false) 
 	var in_combo := def.state == Fighter.HITSTUN or def.state == Fighter.FALL
 	def.combo = def.combo + 1 if in_combo else 1
 	var dmg: int = int(m["damage"]) * clampi(11 - def.combo, 5, 10) / 10
+	dmg = dmg * int(def.data.get("dmg_taken", 100)) / 100   # SHORTY takes extra damage
 	def.health = maxi(1 if training else 0, def.health - dmg)
 	att.score += dmg * 10 + 100 * (def.combo - 1)
 	def.guarding = false

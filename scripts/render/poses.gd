@@ -36,6 +36,13 @@ static func idle(cid: String, t: float) -> Dictionary:
 		"ff": Vector2(21, 0), "bf": Vector2(-23, 0)}
 
 
+## SHORTY's intro pose: standing tall, hands in his trouser pockets, chin up.
+static func showcase(cid: String, t: float) -> Dictionary:
+	var b := sin(t * 0.06) * 0.5
+	return {"px": 0.0, "py": 47.0, "lean": -2.0, "head": 8.0 + b, "rot": 0.0, "oy": 0.0, "open": 0.0,
+		"fh": Vector2(9, 44), "bh": Vector2(-9, 44), "ff": Vector2(9, 0), "bf": Vector2(-11, 0)}
+
+
 static func crouch(cid: String, t: float) -> Dictionary:
 	var b := sin(t * 0.11) * 0.6
 	if cid == "kros":
@@ -130,7 +137,30 @@ static func _attack_keys(mv: String) -> Array:
 		"j_hk": return [{"ff": Vector2(10, 20), "lean": -6.0}, {"ff": Vector2(49, 10), "bf": Vector2(-14, 24), "lean": -14.0}]
 		# spit: rear back with the chin up, then lunge the head forward
 		"spit": return [{"lean": -8.0, "head": 16.0, "px": -2.0}, {"lean": 20.0, "head": -16.0, "px": 4.0}]
+	if mv.begins_with("hb_"):
+		return _headbutt_keys(mv.substr(3))
 	return [{}, {}]
+
+
+## SHORTY's buttons are swapped: punch buttons are headbutts, kick buttons are punches.
+static func _pose_move(cid: String, mv: String) -> String:
+	if cid != "shorty" or mv.length() < 4:
+		return mv
+	if mv.ends_with("k"):
+		return mv.substr(0, mv.length() - 1) + "p"
+	return "hb_" + mv
+
+
+## Headbutts: rear back with the chin up, then drive the head forward (the heavier, the further).
+static func _headbutt_keys(mv: String) -> Array:
+	var w := 1.0 if mv.ends_with("lp") else (1.5 if mv.ends_with("mp") else 2.0)
+	if mv == "cr_hp":   # rising headbutt (anti-air)
+		return [{"lean": 30.0, "head": -12.0, "py": 24.0},
+			{"lean": -12.0, "head": 34.0, "py": 52.0, "px": 4.0, "fh": Vector2(14, 70), "bh": Vector2(0, 66)}]
+	if mv.begins_with("j_"):   # diving headbutt
+		return [{"lean": -10.0, "head": 20.0}, {"lean": 40.0 + 8.0 * w, "head": -30.0, "px": 4.0}]
+	return [{"lean": -8.0 * w, "head": 16.0, "px": -2.0 * w},
+		{"lean": 22.0 + 10.0 * w, "head": -24.0, "px": 3.0 + 3.0 * w, "fh": Vector2(16, 62), "bh": Vector2(4, 58)}]
 
 
 static func _scaled(over: Dictionary, sx: float, sy: float) -> Dictionary:
@@ -149,7 +179,7 @@ static func attack(cid: String, t: float, mv: String, f: int, m: Dictionary) -> 
 		base = jump(cid, t)
 	else:
 		base = idle(cid, t)
-	var keys := _attack_keys(mv)
+	var keys := _attack_keys(_pose_move(cid, mv))
 	var wo: Dictionary = keys[0]
 	var ho: Dictionary = keys[1]
 	if cid == "kros":
